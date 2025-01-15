@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generated 15 ene 2025, 17:39:33 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 15 ene 2025, 17:43:24 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-    <class catalog="laravel" name="pojos.Users" optimistic-lock="none" table="users">
+    <class catalog="laravel" name="model.pojos.Users" optimistic-lock="none" table="users">
         <id name="id" type="java.lang.Long">
             <column name="id"/>
             <generator class="identity"/>
         </id>
-        <many-to-one class="pojos.Roles" fetch="select" name="roles">
+        <many-to-one class="model.pojos.Roles" fetch="select" name="roles">
             <column name="role_id"/>
         </many-to-one>
         <property name="name" type="string">
@@ -58,19 +58,19 @@
             <key>
                 <column name="user_id"/>
             </key>
-            <one-to-many class="pojos.Modules"/>
+            <one-to-many class="model.pojos.Modules"/>
         </set>
         <set fetch="select" inverse="true" lazy="true" name="enrollmentses" table="enrollments">
             <key>
                 <column name="user_id" not-null="true"/>
             </key>
-            <one-to-many class="pojos.Enrollments"/>
+            <one-to-many class="model.pojos.Enrollments"/>
         </set>
         <set fetch="select" inverse="true" lazy="true" name="meetingses" table="meetings">
             <key>
                 <column name="user_id" not-null="true"/>
             </key>
-            <one-to-many class="pojos.Meetings"/>
+            <one-to-many class="model.pojos.Meetings"/>
         </set>
     </class>
 </hibernate-mapping>

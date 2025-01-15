@@ -1,5 +1,5 @@
 package model.pojos;
-// Generated 15 ene 2025, 17:39:33 by Hibernate Tools 6.5.1.Final
+// Generated 15 ene 2025, 17:43:24 by Hibernate Tools 6.5.1.Final
 
 import java.sql.Timestamp;
 

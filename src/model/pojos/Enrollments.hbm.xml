@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generated 15 ene 2025, 17:39:33 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 15 ene 2025, 17:43:24 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-    <class catalog="laravel" name="pojos.Enrollments" optimistic-lock="none" table="enrollments">
+    <class catalog="laravel" name="model.pojos.Enrollments" optimistic-lock="none" table="enrollments">
         <id name="id" type="java.lang.Long">
             <column name="id"/>
             <generator class="identity"/>
         </id>
-        <many-to-one class="pojos.Modules" fetch="select" name="modules">
+        <many-to-one class="model.pojos.Modules" fetch="select" name="modules">
             <column name="module_id" not-null="true"/>
         </many-to-one>
-        <many-to-one class="pojos.Users" fetch="select" name="users">
+        <many-to-one class="model.pojos.Users" fetch="select" name="users">
             <column name="user_id" not-null="true"/>
         </many-to-one>
         <property name="date" type="date">

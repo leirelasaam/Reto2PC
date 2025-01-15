@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generated 15 ene 2025, 17:39:33 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 15 ene 2025, 17:43:24 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-    <class catalog="laravel" name="pojos.Cycles" optimistic-lock="none" table="cycles">
+    <class catalog="laravel" name="model.pojos.Cycles" optimistic-lock="none" table="cycles">
         <id name="id" type="java.lang.Long">
             <column name="id"/>
             <generator class="identity"/>
@@ -22,7 +22,7 @@
             <key>
                 <column name="cycle_id" not-null="true"/>
             </key>
-            <one-to-many class="pojos.Modules"/>
+            <one-to-many class="model.pojos.Modules"/>
         </set>
     </class>
 </hibernate-mapping>
