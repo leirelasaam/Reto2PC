@@ -1,5 +1,5 @@
-package pojos;
-// Generated 15 ene 2025, 17:03:42 by Hibernate Tools 6.5.1.Final
+package model.pojos;
+// Generated 15 ene 2025, 17:39:33 by Hibernate Tools 6.5.1.Final
 
 import java.sql.Timestamp;
 import java.util.HashSet;
