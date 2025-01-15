@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generated 15 ene 2025, 17:43:24 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class catalog="laravel" name="model.pojos.Roles" optimistic-lock="none" table="roles">
+        <id name="id" type="java.lang.Long">
+            <column name="id"/>
+            <generator class="identity"/>
+        </id>
+        <property name="role" type="string">
+            <column length="255" name="role" not-null="true"/>
+        </property>
+        <property name="description" type="string">
+            <column length="255" name="description" not-null="true"/>
+        </property>
+        <property name="createdAt" type="timestamp">
+            <column length="19" name="created_at"/>
+        </property>
+        <property name="updatedAt" type="timestamp">
+            <column length="19" name="updated_at"/>
+        </property>
+        <set fetch="select" inverse="true" lazy="true" name="userses" table="users">
+            <key>
+                <column name="role_id"/>
+            </key>
+            <one-to-many class="model.pojos.Users"/>
+        </set>
+    </class>
+</hibernate-mapping>

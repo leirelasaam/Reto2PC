@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generated 15 ene 2025, 17:43:24 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class catalog="laravel" name="model.pojos.Users" optimistic-lock="none" table="users">
+        <id name="id" type="java.lang.Long">
+            <column name="id"/>
+            <generator class="identity"/>
+        </id>
+        <many-to-one class="model.pojos.Roles" fetch="select" name="roles">
+            <column name="role_id"/>
+        </many-to-one>
+        <property name="name" type="string">
+            <column length="255" name="name" not-null="true"/>
+        </property>
+        <property name="email" type="string">
+            <column length="255" name="email" not-null="true" unique="true"/>
+        </property>
+        <property name="emailVerifiedAt" type="timestamp">
+            <column length="19" name="email_verified_at"/>
+        </property>
+        <property name="password" type="string">
+            <column length="255" name="password" not-null="true"/>
+        </property>
+        <property name="rememberToken" type="string">
+            <column length="100" name="remember_token"/>
+        </property>
+        <property name="createdAt" type="timestamp">
+            <column length="19" name="created_at"/>
+        </property>
+        <property name="updatedAt" type="timestamp">
+            <column length="19" name="updated_at"/>
+        </property>
+        <property name="deletedAt" type="timestamp">
+            <column length="19" name="deleted_at"/>
+        </property>
+        <property name="lastname" type="string">
+            <column length="255" name="lastname" not-null="true"/>
+        </property>
+        <property name="pin" type="string">
+            <column length="255" name="pin" not-null="true" unique="true"/>
+        </property>
+        <property name="address" type="string">
+            <column length="255" name="address" not-null="true"/>
+        </property>
+        <property name="phone1" type="string">
+            <column length="255" name="phone1" not-null="true"/>
+        </property>
+        <property name="phone2" type="string">
+            <column length="255" name="phone2"/>
+        </property>
+        <property name="photo" type="binary">
+            <column name="photo"/>
+        </property>
+        <property name="intensive" type="boolean">
+            <column name="intensive" not-null="true"/>
+        </property>
+        <set fetch="select" inverse="true" lazy="true" name="moduleses" table="modules">
+            <key>
+                <column name="user_id"/>
+            </key>
+            <one-to-many class="model.pojos.Modules"/>
+        </set>
+        <set fetch="select" inverse="true" lazy="true" name="enrollmentses" table="enrollments">
+            <key>
+                <column name="user_id" not-null="true"/>
+            </key>
+            <one-to-many class="model.pojos.Enrollments"/>
+        </set>
+        <set fetch="select" inverse="true" lazy="true" name="meetingses" table="meetings">
+            <key>
+                <column name="user_id" not-null="true"/>
+            </key>
+            <one-to-many class="model.pojos.Meetings"/>
+        </set>
+    </class>
+</hibernate-mapping>
