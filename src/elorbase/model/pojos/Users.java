@@ -1,7 +1,8 @@
 package elorbase.model.pojos;
-// Generated 15 ene 2025, 17:43:24 by Hibernate Tools 6.5.1.Final
+// Generated 15 ene 2025, 19:12:17 by Hibernate Tools 6.5.1.Final
 
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -229,6 +230,12 @@ public class Users implements java.io.Serializable {
 
 	public void setMeetingses(Set meetingses) {
 		this.meetingses = meetingses;
+	}
+
+	public String toStringSimple() {
+		return "Users [id=" + id + ", name=" + name + ", email=" + email + ", password=" + password
+				+ ", lastname=" + lastname + ", pin=" + pin + ", address=" + address + ", phone1=" + phone1
+				+ ", phone2=" + phone2 + ", photo=" + Arrays.toString(photo) + ", intensive=" + intensive + ", role=" + roles.getRole() + "]";
 	}
 
 }

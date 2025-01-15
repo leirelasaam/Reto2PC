@@ -10,13 +10,13 @@
         <property name="hibernate.hbm2ddl.auto">none</property>
         <property name="hibernate.search.autoregister_listeners">true</property>
         <property name="hibernate.validator.apply_to_ddl">false</property>
-        <mapping resource="pojos/Meetings.hbm.xml"/>
-        <mapping resource="pojos/Modules.hbm.xml"/>
-        <mapping resource="pojos/Schedules.hbm.xml"/>
-        <mapping resource="pojos/Participants.hbm.xml"/>
-        <mapping resource="pojos/Users.hbm.xml"/>
-        <mapping resource="pojos/Cycles.hbm.xml"/>
-        <mapping resource="pojos/Enrollments.hbm.xml"/>
-        <mapping resource="pojos/Roles.hbm.xml"/>
+        <mapping resource="mapping/Roles.hbm.xml"/>
+        <mapping resource="mapping/Users.hbm.xml"/>
+        <mapping resource="mapping/Modules.hbm.xml"/>
+        <mapping resource="mapping/Schedules.hbm.xml"/>
+        <mapping resource="mapping/Meetings.hbm.xml"/>
+        <mapping resource="mapping/Cycles.hbm.xml"/>
+        <mapping resource="mapping/Enrollments.hbm.xml"/>
+        <mapping resource="mapping/Participants.hbm.xml"/>
     </session-factory>
 </hibernate-configuration>
