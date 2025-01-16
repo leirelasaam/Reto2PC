@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generated 15 ene 2025, 19:12:17 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 16 ene 2025, 15:45:15 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-    <class catalog="laravel" name="elorbase.model.pojos.Modules" optimistic-lock="none" table="modules">
+    <class catalog="laravel" name="server.elorbase.model.Modules" optimistic-lock="none" table="modules">
         <id name="id" type="java.lang.Long">
             <column name="id"/>
             <generator class="identity"/>
         </id>
-        <many-to-one class="elorbase.model.pojos.Cycles" fetch="select" name="cycles">
+        <many-to-one class="server.elorbase.model.Cycles" fetch="select" name="cycles">
             <column name="cycle_id" not-null="true"/>
         </many-to-one>
-        <many-to-one class="elorbase.model.pojos.Users" fetch="select" name="users">
+        <many-to-one class="server.elorbase.model.Users" fetch="select" name="users">
             <column name="user_id"/>
         </many-to-one>
         <property name="code" type="string">
@@ -34,13 +34,13 @@
             <key>
                 <column name="module_id" not-null="true"/>
             </key>
-            <one-to-many class="elorbase.model.pojos.Enrollments"/>
+            <one-to-many class="server.elorbase.model.Enrollments"/>
         </set>
         <set fetch="select" inverse="true" lazy="true" name="scheduleses" table="schedules">
             <key>
                 <column name="module_id" not-null="true"/>
             </key>
-            <one-to-many class="elorbase.model.pojos.Schedules"/>
+            <one-to-many class="server.elorbase.model.Schedules"/>
         </set>
     </class>
 </hibernate-mapping>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generated 15 ene 2025, 19:12:17 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 16 ene 2025, 15:45:15 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-    <class catalog="laravel" name="elorbase.model.pojos.Schedules" optimistic-lock="none" table="schedules">
+    <class catalog="laravel" name="server.elorbase.model.Schedules" optimistic-lock="none" table="schedules">
         <id name="id" type="java.lang.Long">
             <column name="id"/>
             <generator class="identity"/>
         </id>
-        <many-to-one class="elorbase.model.pojos.Modules" fetch="select" name="modules">
+        <many-to-one class="server.elorbase.model.Modules" fetch="select" name="modules">
             <column name="module_id" not-null="true"/>
         </many-to-one>
         <property name="day" type="byte">
