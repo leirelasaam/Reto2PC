@@ -12,7 +12,6 @@ import java.util.Set;
 public class Users implements java.io.Serializable {
 
 	private Long id;
-	private Roles roles;
 	private String name;
 	private String email;
 	private Timestamp emailVerifiedAt;
@@ -28,6 +27,8 @@ public class Users implements java.io.Serializable {
 	private String phone2;
 	private byte[] photo;
 	private boolean intensive;
+	private Roles roles;
+	// Controlar vacíos
 	private Set moduleses = new HashSet(0);
 	private Set enrollmentses = new HashSet(0);
 	private Set meetingses = new HashSet(0);

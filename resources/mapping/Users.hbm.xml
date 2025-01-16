@@ -54,6 +54,7 @@
         <property name="intensive" type="boolean">
             <column name="intensive" not-null="true"/>
         </property>
+        <!--  
         <set fetch="select" inverse="true" lazy="true" name="moduleses" table="modules">
             <key>
                 <column name="user_id"/>
@@ -72,5 +73,6 @@
             </key>
             <one-to-many class="server.elorbase.model.Meetings"/>
         </set>
+        -->
     </class>
 </hibernate-mapping>

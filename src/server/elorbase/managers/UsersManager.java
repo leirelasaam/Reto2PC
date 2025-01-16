@@ -4,6 +4,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 
+import jakarta.transaction.Transactional;
 import server.elorbase.model.Users;
 import server.elorbase.utils.DBQueries;
 

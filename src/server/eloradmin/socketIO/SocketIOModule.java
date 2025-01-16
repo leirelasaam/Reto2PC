@@ -1,5 +1,6 @@
 package server.eloradmin.socketIO;
 
+import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
 
 import com.corundumstudio.socketio.SocketIOServer;
@@ -66,23 +67,29 @@ public class SocketIOModule {
 			String message = data.getMessage();
 			System.out.println("Server received: " + data.getMessage());
 
-			// We parse the JSON into an JsonObject
-			// The JSON should be something like this: {"message": "patata"}
-			Gson gson = new Gson();
-			JsonObject jsonObject = gson.fromJson(message, JsonObject.class);
-			String email = jsonObject.get("message").getAsString();
-			System.out.println("Email " + email);
-
-			UsersManager um = new UsersManager(sesion);
-			Users user = um.getByEmail(email);
-			System.out.println(user.toStringSimple());
-
 			// We parse the answer into JSON
-			String answerMessage = gson.toJson(user);
+			try {
+				// We parse the JSON into an JsonObject
+				// The JSON should be something like this: {"message": "patata"}
+				Gson gson = new Gson();
+				JsonObject jsonObject = gson.fromJson(message, JsonObject.class);
+				String email = jsonObject.get("message").getAsString();
 
-			// ... and we send it back to the client inside a MessageOutput
-			MessageOutput messageOutput = new MessageOutput(answerMessage);
-			client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
+				UsersManager um = new UsersManager(sesion);
+				Users user = um.getByEmail(email);
+				
+				if(user == null)
+					client.sendEvent(Events.ON_LOGIN_ERROR_NO_EMAIL.value, new MessageOutput("No existe un usuario con el correo " + email + "."));
+					
+				String answerMessage = gson.toJson(user);
+				// ... and we send it back to the client inside a MessageOutput
+				MessageOutput messageOutput = new MessageOutput(answerMessage);
+				client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
+			} catch (Exception e) {
+				System.out.println("Error: " + e);
+				client.sendEvent(Events.ON_LOGIN_ERROR.value, new MessageOutput("No se ha podido parsear el JSON."));
+			}
+
 		});
 	}
 
