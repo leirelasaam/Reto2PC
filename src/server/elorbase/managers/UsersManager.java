@@ -1,10 +1,11 @@
 package server.elorbase.managers;
 
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 
-import server.elorbase.model.Users;
+import server.elorbase.entities.User;
 import server.elorbase.utils.DBQueries;
 
 public class UsersManager {
@@ -15,17 +16,19 @@ public class UsersManager {
 		this.sesion = sesion;
 	}
 	
-	public Users getByEmail(String email) {
-		Users u = null;
+	public User getByEmail(String email) {
+		User u = null;
 
 		Session session = sesion.openSession();
 		String hql = DBQueries.U_BY_EMAIL;
-		Query<Users> q = session.createQuery(hql, Users.class);
+		Query<User> q = session.createQuery(hql, User.class);
 		q.setParameter("email", email);
 		q.setMaxResults(1);
 
 		// No obtener como lista, ya que solo puede devolver uno o null
 		u = q.uniqueResult();
+		
+		Hibernate.initialize(u.getRole());
 
 		session.close();
 
