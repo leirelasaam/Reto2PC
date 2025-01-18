@@ -6,10 +6,10 @@ package server.eloradmin.config;
 public enum Events {
 
 	ON_LOGIN ("onLogin"),
-	ON_GET_ALL_USERS ("onGetAll"),
     ON_LOGOUT ("onLogout"),
     ON_LOGIN_ANSWER ("onLoginAnswer"),
-	ON_GET_ALL_USERS_ANSWER ("onGetAllAnswer");
+    ON_RESET_PASS_EMAIL("onResetPassEmail"),
+    ON_RESET_PASS_EMAIL_ANSWER("onResetPassEmailAnswer");
 	
 	public final String value;
 

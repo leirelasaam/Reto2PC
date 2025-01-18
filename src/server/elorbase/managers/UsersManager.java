@@ -15,7 +15,7 @@ public class UsersManager {
 	public UsersManager(SessionFactory sesion) {
 		this.sesion = sesion;
 	}
-	
+
 	public User getByEmailOrPin(String login) {
 		User u = null;
 
@@ -28,13 +28,34 @@ public class UsersManager {
 
 		// No obtener como lista, ya que solo puede devolver uno o null
 		u = q.uniqueResult();
-		
+
 		if (u != null)
 			Hibernate.initialize(u.getRole());
 
 		session.close();
 
 		return u;
+	}
+
+	public void updatePasswordByUser(User user, String password) {
+		Session session = sesion.openSession();
+		session.beginTransaction();
+
+		try {
+			if (user != null) {
+				user.setPassword(password);
+				session.merge(user);
+				session.getTransaction().commit();
+
+				System.out.println("Contraseña restablecida correctamente para el usuario: " + user.getEmail());
+			}
+
+		} catch (Exception e) {
+			session.getTransaction().rollback();
+			e.printStackTrace();
+		} finally {
+			session.close();
+		}
 	}
 
 }

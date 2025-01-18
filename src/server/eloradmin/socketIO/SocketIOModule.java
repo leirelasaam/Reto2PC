@@ -2,6 +2,7 @@ package server.eloradmin.socketIO;
 
 import java.net.HttpURLConnection;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
 
@@ -20,6 +21,7 @@ import server.elorbase.dtos.UserDTO;
 import server.elorbase.entities.User;
 import server.elorbase.utils.BcryptUtils;
 import server.elorbase.utils.HibernateUtil;
+import server.elormail.EmailSender;
 
 import com.google.gson.Gson;
 
@@ -44,6 +46,7 @@ public class SocketIOModule {
 		// Custom events
 		server.addEventListener(Events.ON_LOGIN.value, MessageInput.class, this.login());
 		server.addEventListener(Events.ON_LOGOUT.value, MessageInput.class, this.logout());
+		server.addEventListener(Events.ON_RESET_PASS_EMAIL.value, MessageInput.class, this.sendResetPassEmail());
 	}
 
 	// Default events
@@ -99,14 +102,17 @@ public class SocketIOModule {
 					if (BcryptUtils.verifyPassword(password, user.getPassword())) {
 						UserDTO userDTO = new UserDTO(user);
 						String answerMessage = gson.toJson(userDTO);
-						// Se ha encontrado el usuario, la contraseña coincide y ya está registrado > 200 - User
+						// Se ha encontrado el usuario, la contraseña coincide y ya está registrado >
+						// 200 - User
 						if (user.isRegistered()) {
 							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
 							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
 							System.out.println("Sending: " + messageOutput.toString());
-						// Se ha encontrado el usuario, la contraseña coincide y no está registrado > 403 - User
+							// Se ha encontrado el usuario, la contraseña coincide y no está registrado >
+							// 403 - User
 						} else {
-							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN, answerMessage);
+							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN,
+									answerMessage);
 							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
 							System.out.println("Sending: " + messageOutput.toString());
 						}
@@ -142,6 +148,47 @@ public class SocketIOModule {
 			// We do something on dataBase? ¯_(ツ)_/¯
 
 			System.out.println(userName + " loged out");
+		});
+	}
+
+	private DataListener<MessageInput> sendResetPassEmail() {
+		return ((client, data, ackSender) -> {
+			System.out.println("Client from " + client.getRemoteAddress() + " wants to reset password");
+
+			try {
+				String clientMsg = data.getMessage();
+				System.out.println("Server received: " + data.getMessage());
+
+				/*
+				 * Ejemplo de lo que nos llega: { "message": "ejemplo@usuario.com"}
+				 */
+				Gson gson = new Gson();
+				// Extraer el JSON
+				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
+				// Extraer el message
+				String login = jsonObject.get("message").getAsString();
+				
+				// Buscar el usuario por email
+				UsersManager um = new UsersManager(sesion);
+				User user = um.getByEmailOrPin(login);
+				
+				if (user != null) {
+					EmailSender es = new EmailSender();
+					@SuppressWarnings("deprecation")
+					String password = RandomStringUtils.randomAlphanumeric(10);
+					um.updatePasswordByUser(user, password);
+					es.sendEmail(user.getEmail(), "Nueva contraseña", "Contraseña nueva: " + password);
+					client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.OK);
+					System.out.println("Sending: " + DefaultMessages.OK.toString());
+				} else {
+					client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.NOT_FOUND);
+					System.out.println("Sending: " + DefaultMessages.NOT_FOUND.toString());
+				}
+			} catch (Exception e) {
+				System.out.println("Error: " + e.getMessage());
+				client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+				System.out.println("Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+			}
 		});
 	}
 

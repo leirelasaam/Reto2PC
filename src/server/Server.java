@@ -6,14 +6,11 @@ import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOServer;
 
 public class Server {
-	private static final String HOST_NAME = "0.0.0.0";
-	private static final int PORT = 3000;
-
 	public static void main(String[] args) {
 		// Server configuration
 		Configuration config = new Configuration();
-		config.setHostname(HOST_NAME);
-		config.setPort(PORT);
+		config.setHostname(ServerConfig.HOST_NAME);
+		config.setPort(ServerConfig.PORT);
 
 		// We start the server
 		SocketIOServer server = new SocketIOServer(config);
