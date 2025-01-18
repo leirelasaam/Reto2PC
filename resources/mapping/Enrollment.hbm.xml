@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generated 16 ene 2025, 15:45:15 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 18 ene 2025, 9:48:26 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-    <class catalog="laravel" name="server.elorbase.model.Enrollments" optimistic-lock="none" table="enrollments">
+    <class catalog="laravel" name="server.elorbase.entities.Enrollment" optimistic-lock="none" table="enrollments">
         <id name="id" type="java.lang.Long">
             <column name="id"/>
             <generator class="identity"/>
         </id>
-        <many-to-one class="server.elorbase.model.Modules" fetch="select" name="modules">
+        <many-to-one class="server.elorbase.entities.Module" fetch="select" name="module">
             <column name="module_id" not-null="true"/>
         </many-to-one>
-        <many-to-one class="server.elorbase.model.Users" fetch="select" name="users">
+        <many-to-one class="server.elorbase.entities.User" fetch="select" name="user">
             <column name="user_id" not-null="true"/>
         </many-to-one>
         <property name="date" type="date">

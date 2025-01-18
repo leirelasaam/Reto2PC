@@ -1,5 +1,7 @@
 package server.eloradmin.socketIO;
 
+import java.net.HttpURLConnection;
+
 import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
 
@@ -10,10 +12,13 @@ import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.google.gson.JsonObject;
 
 import server.eloradmin.config.Events;
+import server.eloradmin.model.DefaultMessages;
 import server.eloradmin.model.MessageInput;
 import server.eloradmin.model.MessageOutput;
 import server.elorbase.managers.UsersManager;
-import server.elorbase.model.Users;
+import server.elorbase.dtos.UserDTO;
+import server.elorbase.entities.User;
+import server.elorbase.utils.BcryptUtils;
 import server.elorbase.utils.HibernateUtil;
 
 import com.google.gson.Gson;
@@ -63,31 +68,51 @@ public class SocketIOModule {
 		return ((client, data, ackSender) -> {
 			System.out.println("Client from " + client.getRemoteAddress() + " wants to login");
 
-			// The JSON message from MessageInput
-			String message = data.getMessage();
-			System.out.println("Server received: " + data.getMessage());
-
-			// We parse the answer into JSON
 			try {
-				// We parse the JSON into an JsonObject
-				// The JSON should be something like this: {"message": "patata"}
-				Gson gson = new Gson();
-				JsonObject jsonObject = gson.fromJson(message, JsonObject.class);
-				String email = jsonObject.get("message").getAsString();
+				String clientMsg = data.getMessage();
+				System.out.println("Server received: " + data.getMessage());
 
+				/*
+				 * Ejemplo de lo que nos llega: { "message": { "email": "user@example.com",
+				 * "password": "1234" } }
+				 */
+				Gson gson = new Gson();
+				// Extraer el JSON
+				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
+				// Extraer el message
+				String messageString = jsonObject.get("message").getAsString();
+				// Extraer el JSON dentro de message
+				JsonObject messageJsonObject = gson.fromJson(messageString, JsonObject.class);
+				// Extraer email y password
+				String email = messageJsonObject.get("email").getAsString();
+				String password = messageJsonObject.get("password").getAsString();
+
+				// Buscar el usuario por email
 				UsersManager um = new UsersManager(sesion);
-				Users user = um.getByEmail(email);
-				
-				if(user == null)
-					client.sendEvent(Events.ON_LOGIN_ERROR_NO_EMAIL.value, new MessageOutput("No existe un usuario con el correo " + email + "."));
-					
-				String answerMessage = gson.toJson(user);
-				// ... and we send it back to the client inside a MessageOutput
-				MessageOutput messageOutput = new MessageOutput(answerMessage);
-				client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
+				User user = um.getByEmail(email);
+
+				// No se ha encontrado usuario > 404 - NOT FOUND
+				if (user == null) {
+					client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.NOT_FOUND);
+					System.out.println("Sending: " + DefaultMessages.NOT_FOUND.toString());
+				} else {
+					// Se ha encontrado el usuario y la contraseña coincide > 200 - User
+					if (BcryptUtils.verifyPassword(password, user.getPassword())) {
+						UserDTO userDTO = new UserDTO(user);
+						String answerMessage = gson.toJson(userDTO);
+						MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
+						client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
+						System.out.println("Sending: " + messageOutput.toString());
+					// Se ha encontrado el usuario y la contraseña no coincide > 403 - FORBIDDEN
+					} else {
+						client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.FORBIDDEN);
+						System.out.println("Sending: " + DefaultMessages.FORBIDDEN.toString());
+					}
+				}
 			} catch (Exception e) {
-				System.out.println("Error: " + e);
-				client.sendEvent(Events.ON_LOGIN_ERROR.value, new MessageOutput("No se ha podido parsear el JSON."));
+				System.out.println("Error: " + e.getMessage());
+				client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+				System.out.println("Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
 			}
 
 		});

@@ -7,10 +7,17 @@ package server.eloradmin.model;
  */
 public abstract class AbstractMessage {
 
+	private int code;
 	private String message = null;
 
 	public AbstractMessage(String message) {
 		super();
+		this.message = message;
+	}
+	
+	public AbstractMessage(int code, String message) {
+		super();
+		this.code = code;
 		this.message = message;
 	}
 
@@ -20,5 +27,18 @@ public abstract class AbstractMessage {
 
 	public void setMessage(String message) {
 		this.message = message;
+	}
+	
+	public int getCode() {
+		return code;
+	}
+
+	public void setCode(int code) {
+		this.code = code;
+	}
+
+	@Override
+	public String toString() {
+		return "AbstractMessage [code=" + code + ", message=" + message + "]";
 	}
 }

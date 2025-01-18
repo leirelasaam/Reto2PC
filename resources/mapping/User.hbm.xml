@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generated 16 ene 2025, 15:45:15 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 18 ene 2025, 9:48:26 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-    <class catalog="laravel" name="server.elorbase.model.Users" optimistic-lock="none" table="users">
+    <class catalog="laravel" name="server.elorbase.entities.User" optimistic-lock="none" table="users">
         <id name="id" type="java.lang.Long">
             <column name="id"/>
             <generator class="identity"/>
         </id>
-        <many-to-one class="server.elorbase.model.Roles" fetch="select" name="roles">
+        <many-to-one class="server.elorbase.entities.Role" fetch="select" name="role">
             <column name="role_id"/>
         </many-to-one>
         <property name="name" type="string">
@@ -54,24 +54,27 @@
         <property name="intensive" type="boolean">
             <column name="intensive" not-null="true"/>
         </property>
+        <property name="registered" type="boolean">
+            <column name="registered" not-null="true"/>
+        </property>
         <!--  
-        <set fetch="select" inverse="true" lazy="true" name="moduleses" table="modules">
+        <set fetch="select" inverse="true" lazy="true" name="modules" table="modules">
             <key>
                 <column name="user_id"/>
             </key>
-            <one-to-many class="server.elorbase.model.Modules"/>
+            <one-to-many class="server.elorbase.entities.Module"/>
         </set>
-        <set fetch="select" inverse="true" lazy="true" name="enrollmentses" table="enrollments">
+        <set fetch="select" inverse="true" lazy="true" name="enrollments" table="enrollments">
             <key>
                 <column name="user_id" not-null="true"/>
             </key>
-            <one-to-many class="server.elorbase.model.Enrollments"/>
+            <one-to-many class="server.elorbase.entities.Enrollment"/>
         </set>
-        <set fetch="select" inverse="true" lazy="true" name="meetingses" table="meetings">
+        <set fetch="select" inverse="true" lazy="true" name="meetings" table="meetings">
             <key>
                 <column name="user_id" not-null="true"/>
             </key>
-            <one-to-many class="server.elorbase.model.Meetings"/>
+            <one-to-many class="server.elorbase.entities.Meeting"/>
         </set>
         -->
     </class>

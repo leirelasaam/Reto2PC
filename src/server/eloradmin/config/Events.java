@@ -9,8 +9,6 @@ public enum Events {
 	ON_GET_ALL_USERS ("onGetAll"),
     ON_LOGOUT ("onLogout"),
     ON_LOGIN_ANSWER ("onLoginAnswer"),
-    ON_LOGIN_ERROR_NO_EMAIL ("onLoginErrorNoEmail"),
-    ON_LOGIN_ERROR ("onLoginError"),
 	ON_GET_ALL_USERS_ANSWER ("onGetAllAnswer");
 	
 	public final String value;
