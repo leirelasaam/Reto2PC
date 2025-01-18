@@ -83,13 +83,13 @@ public class SocketIOModule {
 				String messageString = jsonObject.get("message").getAsString();
 				// Extraer el JSON dentro de message
 				JsonObject messageJsonObject = gson.fromJson(messageString, JsonObject.class);
-				// Extraer email y password
-				String email = messageJsonObject.get("email").getAsString();
+				// Extraer login y password
+				String login = messageJsonObject.get("login").getAsString();
 				String password = messageJsonObject.get("password").getAsString();
 
 				// Buscar el usuario por email
 				UsersManager um = new UsersManager(sesion);
-				User user = um.getByEmail(email);
+				User user = um.getByEmailOrPin(login);
 
 				// No se ha encontrado usuario > 404 - NOT FOUND
 				if (user == null) {

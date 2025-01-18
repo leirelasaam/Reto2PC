@@ -16,19 +16,21 @@ public class UsersManager {
 		this.sesion = sesion;
 	}
 	
-	public User getByEmail(String email) {
+	public User getByEmailOrPin(String login) {
 		User u = null;
 
 		Session session = sesion.openSession();
-		String hql = DBQueries.U_BY_EMAIL;
+		String hql = DBQueries.U_BY_EMAIL_OR_PIN;
 		Query<User> q = session.createQuery(hql, User.class);
-		q.setParameter("email", email);
+		q.setParameter("email", login);
+		q.setParameter("pin", login.toUpperCase());
 		q.setMaxResults(1);
 
 		// No obtener como lista, ya que solo puede devolver uno o null
 		u = q.uniqueResult();
 		
-		Hibernate.initialize(u.getRole());
+		if (u != null)
+			Hibernate.initialize(u.getRole());
 
 		session.close();
 
