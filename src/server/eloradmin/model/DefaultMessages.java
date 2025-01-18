@@ -4,6 +4,7 @@ import java.net.HttpURLConnection;
 
 public class DefaultMessages {
 
+	public static MessageOutput OK = new MessageOutput(HttpURLConnection.HTTP_OK, "OK");
 	// CÓDIGOS 400
 	// 401
 	public static MessageOutput UNAUTHORIZED = new MessageOutput(HttpURLConnection.HTTP_UNAUTHORIZED, "Unauthorized");
