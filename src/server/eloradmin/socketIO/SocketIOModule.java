@@ -96,17 +96,24 @@ public class SocketIOModule {
 					client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.NOT_FOUND);
 					System.out.println("Sending: " + DefaultMessages.NOT_FOUND.toString());
 				} else {
-					// Se ha encontrado el usuario y la contraseña coincide > 200 - User
 					if (BcryptUtils.verifyPassword(password, user.getPassword())) {
 						UserDTO userDTO = new UserDTO(user);
 						String answerMessage = gson.toJson(userDTO);
-						MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
-						client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
-						System.out.println("Sending: " + messageOutput.toString());
-					// Se ha encontrado el usuario y la contraseña no coincide > 403 - FORBIDDEN
+						// Se ha encontrado el usuario, la contraseña coincide y ya está registrado > 200 - User
+						if (user.isRegistered()) {
+							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
+							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
+							System.out.println("Sending: " + messageOutput.toString());
+						// Se ha encontrado el usuario, la contraseña coincide y no está registrado > 403 - User
+						} else {
+							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN, answerMessage);
+							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
+							System.out.println("Sending: " + messageOutput.toString());
+						}
+						// Se ha encontrado el usuario y la contraseña no coincide > 401 - UNAUTHORIZEDs
 					} else {
-						client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.FORBIDDEN);
-						System.out.println("Sending: " + DefaultMessages.FORBIDDEN.toString());
+						client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.UNAUTHORIZED);
+						System.out.println("Sending: " + DefaultMessages.UNAUTHORIZED.toString());
 					}
 				}
 			} catch (Exception e) {
