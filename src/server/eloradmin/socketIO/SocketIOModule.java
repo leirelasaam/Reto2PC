@@ -1,9 +1,9 @@
 package server.eloradmin.socketIO;
 
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
 
 import com.corundumstudio.socketio.SocketIOServer;
@@ -16,14 +16,18 @@ import server.eloradmin.config.Events;
 import server.eloradmin.model.DefaultMessages;
 import server.eloradmin.model.MessageInput;
 import server.eloradmin.model.MessageOutput;
+import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
+import server.elorbase.dtos.ScheduleDTO;
 import server.elorbase.dtos.UserDTO;
+import server.elorbase.entities.Schedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.BcryptUtils;
 import server.elorbase.utils.HibernateUtil;
 import server.elormail.EmailSender;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 
 /**
  * Server control main configuration class
@@ -47,6 +51,7 @@ public class SocketIOModule {
 		server.addEventListener(Events.ON_LOGIN.value, MessageInput.class, this.login());
 		server.addEventListener(Events.ON_LOGOUT.value, MessageInput.class, this.logout());
 		server.addEventListener(Events.ON_RESET_PASS_EMAIL.value, MessageInput.class, this.sendResetPassEmail());
+		server.addEventListener(Events.ON_TEACHER_SCHEDULE.value, MessageInput.class, this.getTeacherSchedule());
 	}
 
 	// Default events
@@ -167,11 +172,11 @@ public class SocketIOModule {
 				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
 				// Extraer el message
 				String login = jsonObject.get("message").getAsString();
-				
+
 				// Buscar el usuario por email
 				UsersManager um = new UsersManager(sesion);
 				User user = um.getByEmailOrPin(login);
-				
+
 				if (user != null) {
 					EmailSender es = new EmailSender();
 					@SuppressWarnings("deprecation")
@@ -187,6 +192,51 @@ public class SocketIOModule {
 			} catch (Exception e) {
 				System.out.println("Error: " + e.getMessage());
 				client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+				System.out.println("Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+			}
+		});
+	}
+
+	private DataListener<MessageInput> getTeacherSchedule() {
+		return ((client, data, ackSender) -> {
+			System.out.println("Client from " + client.getRemoteAddress() + " wants to get the schedule");
+			try {
+				String clientMsg = data.getMessage();
+				System.out.println("Server received: " + data.getMessage());
+
+				/*
+				 * Ejemplo de lo que nos llega: { "message": "70"}
+				 */
+				Gson gson = new Gson();
+				// Extraer el JSON
+				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
+				// Extraer el message
+				String id = jsonObject.get("message").getAsString();
+				int id_int = Integer.parseInt(id);
+
+				JsonObject messageObject = new JsonObject();
+				// Buscar schedules por user_id
+				SchedulesManager sm = new SchedulesManager(sesion);
+				ArrayList<Schedule> schedules = sm.getByUserId(id_int);
+				if (schedules != null) {
+					JsonArray schedulesArray = new JsonArray();
+					for (Schedule s : schedules) {
+						ScheduleDTO sDTO = new ScheduleDTO(s);
+						JsonObject scheduleJson = gson.toJsonTree(sDTO).getAsJsonObject();
+						schedulesArray.add(scheduleJson);
+					}
+					messageObject.add("schedules", schedulesArray);
+					String messageContent = gson.toJson(messageObject);
+					MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
+					client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, messageOutput);
+					System.out.println("Sending: " + messageOutput.toString());
+				} else {
+					client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, DefaultMessages.NOT_FOUND);
+					System.out.println("Sending: " + DefaultMessages.NOT_FOUND.toString());
+				}
+			} catch (Exception e) {
+				System.out.println("Error: " + e.getMessage());
+				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
 				System.out.println("Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
 			}
 		});
