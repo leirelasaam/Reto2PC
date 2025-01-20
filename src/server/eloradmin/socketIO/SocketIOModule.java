@@ -4,12 +4,16 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonObject;
 
 import server.eloradmin.config.Events;
@@ -19,7 +23,6 @@ import server.eloradmin.model.MessageOutput;
 import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
 import server.elorbase.dtos.ScheduleDTO;
-import server.elorbase.dtos.UserDTO;
 import server.elorbase.entities.Schedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.BcryptUtils;
@@ -97,16 +100,20 @@ public class SocketIOModule {
 
 				// Buscar el usuario por email
 				UsersManager um = new UsersManager(sesion);
-				User user = um.getByEmailOrPin(login);
+				User user = um.getByEmailOrPin(login.trim());
 
 				// No se ha encontrado usuario > 404 - NOT FOUND
 				if (user == null) {
 					client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.NOT_FOUND);
 					System.out.println("Sending: " + DefaultMessages.NOT_FOUND.toString());
 				} else {
+					Hibernate.initialize(user);
+					System.out.println(user.toStringEntity());
+					System.out.println(user.getRole().getRole());
 					if (BcryptUtils.verifyPassword(password, user.getPassword())) {
-						UserDTO userDTO = new UserDTO(user);
-						String answerMessage = gson.toJson(userDTO);
+						//String answerMessage = gson.toJson(user);
+
+				        String answerMessage = getSerializedString(user);
 						// Se ha encontrado el usuario, la contraseña coincide y ya está registrado >
 						// 200 - User
 						if (user.isRegistered()) {
@@ -253,5 +260,12 @@ public class SocketIOModule {
 		// Cerrar la sesión bbdd
 		sesion.close();
 		System.out.println("Server stopped");
+	}
+	
+	public String getSerializedString(Object o) throws JsonProcessingException {
+		ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        return objectMapper.writeValueAsString(o);
 	}
 }

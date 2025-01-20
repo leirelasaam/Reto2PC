@@ -10,12 +10,13 @@ import java.util.Set;
  */
 public class Role implements java.io.Serializable {
 
+	private static final long serialVersionUID = 1387387713004948310L;
 	private Long id;
 	private String role;
 	private String description;
 	private Timestamp createdAt;
 	private Timestamp updatedAt;
-	private Set users = new HashSet(0);
+	private Set<User> users = new HashSet<User>(0);
 
 	public Role() {
 	}
@@ -25,7 +26,7 @@ public class Role implements java.io.Serializable {
 		this.description = description;
 	}
 
-	public Role(String role, String description, Timestamp createdAt, Timestamp updatedAt, Set users) {
+	public Role(String role, String description, Timestamp createdAt, Timestamp updatedAt, Set<User> users) {
 		this.role = role;
 		this.description = description;
 		this.createdAt = createdAt;
@@ -73,11 +74,11 @@ public class Role implements java.io.Serializable {
 		this.updatedAt = updatedAt;
 	}
 
-	public Set getUsers() {
+	public Set<User> getUsers() {
 		return this.users;
 	}
 
-	public void setUsers(Set users) {
+	public void setUsers(Set<User> users) {
 		this.users = users;
 	}
 
