@@ -27,9 +27,11 @@ import server.elorbase.entities.Schedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.BcryptUtils;
 import server.elorbase.utils.HibernateUtil;
+import server.elorbase.utils.JSONUtils;
 import server.elormail.EmailSender;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 
 /**
@@ -107,13 +109,9 @@ public class SocketIOModule {
 					client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.NOT_FOUND);
 					System.out.println("Sending: " + DefaultMessages.NOT_FOUND.toString());
 				} else {
-					Hibernate.initialize(user);
-					System.out.println(user.toStringEntity());
-					System.out.println(user.getRole().getRole());
 					if (BcryptUtils.verifyPassword(password, user.getPassword())) {
-						//String answerMessage = gson.toJson(user);
-
-				        String answerMessage = getSerializedString(user);
+				        String answerMessage = JSONUtils.getSerializedString(user);
+						
 						// Se ha encontrado el usuario, la contraseña coincide y ya está registrado >
 						// 200 - User
 						if (user.isRegistered()) {
@@ -260,12 +258,5 @@ public class SocketIOModule {
 		// Cerrar la sesión bbdd
 		sesion.close();
 		System.out.println("Server stopped");
-	}
-	
-	public String getSerializedString(Object o) throws JsonProcessingException {
-		ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        return objectMapper.writeValueAsString(o);
 	}
 }
