@@ -2,7 +2,7 @@ package server;
 
 public class ServerConfig {
 	// Server
-	public static final String HOST_NAME = "10.5.104.31";
+	public static final String HOST_NAME = "0.0.0.0";
 	public static final int PORT = 3000;
 	// SMTP
 	public static String SMTP_HOST = "smtp.gmail.com";
