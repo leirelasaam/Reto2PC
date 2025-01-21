@@ -8,6 +8,7 @@ import java.sql.Timestamp;
  */
 public class Schedule implements java.io.Serializable {
 
+	private static final long serialVersionUID = -7197551083122976370L;
 	private Long id;
 	private Module module;
 	private byte day;

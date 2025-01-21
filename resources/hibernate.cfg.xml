@@ -10,6 +10,7 @@
         <property name="hibernate.hbm2ddl.auto">none</property>
         <property name="hibernate.search.autoregister_listeners">true</property>
         <property name="hibernate.validator.apply_to_ddl">false</property>
+        <property name="hibernate.transaction.jta.platform">org.hibernate.engine.transaction.internal.jta.JtaPlatformProvider</property>
         <mapping resource="mapping/Role.hbm.xml"/>
         <mapping resource="mapping/User.hbm.xml"/>
         <mapping resource="mapping/Module.hbm.xml"/>

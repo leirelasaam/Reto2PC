@@ -4,6 +4,8 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.log4j.Logger;
+import org.apache.log4j.MDC;
 import org.hibernate.SessionFactory;
 
 import com.corundumstudio.socketio.SocketIOServer;
@@ -19,11 +21,11 @@ import server.eloradmin.model.MessageOutput;
 import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
 import server.elorbase.dtos.ScheduleDTO;
-import server.elorbase.dtos.UserDTO;
 import server.elorbase.entities.Schedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.BcryptUtils;
 import server.elorbase.utils.HibernateUtil;
+import server.elorbase.utils.JSONUtils;
 import server.elormail.EmailSender;
 
 import com.google.gson.Gson;
@@ -37,6 +39,7 @@ public class SocketIOModule {
 	// The server
 	private SocketIOServer server = null;
 	private SessionFactory sesion = null;
+	private static final Logger logger = Logger.getLogger(SocketIOModule.class);
 
 	public SocketIOModule(SocketIOServer server) {
 		super();
@@ -58,15 +61,19 @@ public class SocketIOModule {
 
 	private ConnectListener onConnect() {
 		return (client -> {
+			String ip = client.getRemoteAddress().toString();
+
 			client.joinRoom("default-room");
-			System.out.println("New connection, Client: " + client.getRemoteAddress());
+			logger.info("[Client = " + ip + "] New connection");
 		});
 	}
 
 	private DisconnectListener onDisconnect() {
 		return (client -> {
+			String ip = client.getRemoteAddress().toString();
+			
 			client.leaveRoom("default-room");
-			System.out.println(client.getRemoteAddress() + " disconected from server");
+			logger.info("[Client = " + ip + "] Disconected from server");
 		});
 	}
 
@@ -74,11 +81,12 @@ public class SocketIOModule {
 
 	private DataListener<MessageInput> login() {
 		return ((client, data, ackSender) -> {
-			System.out.println("Client from " + client.getRemoteAddress() + " wants to login");
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Client wants to login");
 
 			try {
 				String clientMsg = data.getMessage();
-				System.out.println("Server received: " + data.getMessage());
+				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
 
 				/*
 				 * Ejemplo de lo que nos llega: { "message": { "email": "user@example.com",
@@ -97,49 +105,50 @@ public class SocketIOModule {
 
 				// Buscar el usuario por email
 				UsersManager um = new UsersManager(sesion);
-				User user = um.getByEmailOrPin(login);
+				User user = um.getByEmailOrPin(login.trim());
 
 				// No se ha encontrado usuario > 404 - NOT FOUND
 				if (user == null) {
 					client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.NOT_FOUND);
-					System.out.println("Sending: " + DefaultMessages.NOT_FOUND.toString());
+					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
 				} else {
 					if (BcryptUtils.verifyPassword(password, user.getPassword())) {
-						UserDTO userDTO = new UserDTO(user);
-						String answerMessage = gson.toJson(userDTO);
+						String answerMessage = JSONUtils.getSerializedString(user);
+
 						// Se ha encontrado el usuario, la contraseña coincide y ya está registrado >
 						// 200 - User
 						if (user.isRegistered()) {
 							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
 							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
-							System.out.println("Sending: " + messageOutput.toString());
+							logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
 							// Se ha encontrado el usuario, la contraseña coincide y no está registrado >
 							// 403 - User
 						} else {
 							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN,
 									answerMessage);
 							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
-							System.out.println("Sending: " + messageOutput.toString());
+							logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
 						}
 						// Se ha encontrado el usuario y la contraseña no coincide > 401 - UNAUTHORIZEDs
 					} else {
 						client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.UNAUTHORIZED);
-						System.out.println("Sending: " + DefaultMessages.UNAUTHORIZED.toString());
+						logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.UNAUTHORIZED.toString());
 					}
 				}
 			} catch (Exception e) {
-				System.out.println("Error: " + e.getMessage());
+				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-				System.out.println("Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
 			}
 
 		});
 	}
 
+	// NO FUNCIONAL, HAY QUE HACERLO
 	private DataListener<MessageInput> logout() {
 		return ((client, data, ackSender) -> {
 			// This time, we simply write the message in data
-			System.out.println("Client from " + client.getRemoteAddress() + " wants to logout");
+			logger.info("Client wants to logout");
 
 			// The JSON message from MessageInput
 			String message = data.getMessage();
@@ -152,17 +161,18 @@ public class SocketIOModule {
 
 			// We do something on dataBase? ¯_(ツ)_/¯
 
-			System.out.println(userName + " loged out");
+			logger.info("Loged out");
 		});
 	}
 
 	private DataListener<MessageInput> sendResetPassEmail() {
 		return ((client, data, ackSender) -> {
-			System.out.println("Client from " + client.getRemoteAddress() + " wants to reset password");
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Client wants to reset password");
 
 			try {
 				String clientMsg = data.getMessage();
-				System.out.println("Server received: " + data.getMessage());
+				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
 
 				/*
 				 * Ejemplo de lo que nos llega: { "message": "ejemplo@usuario.com"}
@@ -184,25 +194,26 @@ public class SocketIOModule {
 					um.updatePasswordByUser(user, password);
 					es.sendEmail(user.getEmail(), "Nueva contraseña", "Contraseña nueva: " + password);
 					client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.OK);
-					System.out.println("Sending: " + DefaultMessages.OK.toString());
+					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.OK.toString());
 				} else {
 					client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.NOT_FOUND);
-					System.out.println("Sending: " + DefaultMessages.NOT_FOUND.toString());
+					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
 				}
 			} catch (Exception e) {
-				System.out.println("Error: " + e.getMessage());
+				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-				System.out.println("Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
 			}
 		});
 	}
 
 	private DataListener<MessageInput> getTeacherSchedule() {
 		return ((client, data, ackSender) -> {
-			System.out.println("Client from " + client.getRemoteAddress() + " wants to get the schedule");
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Client wants to get the schedule");
 			try {
 				String clientMsg = data.getMessage();
-				System.out.println("Server received: " + data.getMessage());
+				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
 
 				/*
 				 * Ejemplo de lo que nos llega: { "message": "70"}
@@ -229,15 +240,15 @@ public class SocketIOModule {
 					String messageContent = gson.toJson(messageObject);
 					MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
 					client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, messageOutput);
-					System.out.println("Sending: " + messageOutput.toString());
+					logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
 				} else {
 					client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, DefaultMessages.NOT_FOUND);
-					System.out.println("Sending: " + DefaultMessages.NOT_FOUND.toString());
+					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
 				}
 			} catch (Exception e) {
-				System.out.println("Error: " + e.getMessage());
+				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-				System.out.println("Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
 			}
 		});
 	}
@@ -245,13 +256,13 @@ public class SocketIOModule {
 	// Server control
 	public void start() {
 		server.start();
-		System.out.println("Server started...");
+		logger.info("Server started");
 	}
 
 	public void stop() {
 		server.stop();
 		// Cerrar la sesión bbdd
 		sesion.close();
-		System.out.println("Server stopped");
+		logger.info("Server stopped");
 	}
 }
