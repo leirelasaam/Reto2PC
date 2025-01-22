@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
-import org.apache.log4j.MDC;
 import org.hibernate.SessionFactory;
 
 import com.corundumstudio.socketio.SocketIOServer;
@@ -71,7 +70,7 @@ public class SocketIOModule {
 	private DisconnectListener onDisconnect() {
 		return (client -> {
 			String ip = client.getRemoteAddress().toString();
-			
+
 			client.leaveRoom("default-room");
 			logger.info("[Client = " + ip + "] Disconected from server");
 		});
@@ -115,19 +114,27 @@ public class SocketIOModule {
 					if (BcryptUtils.verifyPassword(password, user.getPassword())) {
 						String answerMessage = JSONUtils.getSerializedString(user);
 
-						// Se ha encontrado el usuario, la contraseña coincide y ya está registrado >
+						// Se ha encontrado el usuario, la contraseña coincide y ya está registrado y es
+						// alumno/profe >
 						// 200 - User
-						if (user.isRegistered()) {
+						if (user.isRegistered() && (user.getRole().getRole().equals("profesor")
+								|| user.getRole().getRole().equals("estudiante"))) {
 							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
 							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
 							logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
-							// Se ha encontrado el usuario, la contraseña coincide y no está registrado >
+							// Se ha encontrado el usuario, la contraseña coincide y no está registrado o no
+							// es un alumno/profe >
 							// 403 - User
-						} else {
+						} else if ((user.getRole().getRole().equals("profesor")
+								|| user.getRole().getRole().equals("estudiante"))) {
 							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN,
 									answerMessage);
 							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
 							logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
+						} else {
+							// Es god o admin, no debe acceder a Elorclass
+							client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.BAD_REQUEST);
+							logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.BAD_REQUEST.toString());
 						}
 						// Se ha encontrado el usuario y la contraseña no coincide > 401 - UNAUTHORIZEDs
 					} else {
