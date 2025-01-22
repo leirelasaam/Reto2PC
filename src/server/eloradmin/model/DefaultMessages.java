@@ -6,6 +6,7 @@ public class DefaultMessages {
 
 	public static MessageOutput OK = new MessageOutput(HttpURLConnection.HTTP_OK, "OK");
 	// CÓDIGOS 400
+	public static MessageOutput BAD_REQUEST = new MessageOutput(HttpURLConnection.HTTP_BAD_REQUEST, "Bad Request");
 	// 401
 	public static MessageOutput UNAUTHORIZED = new MessageOutput(HttpURLConnection.HTTP_UNAUTHORIZED, "Unauthorized");
 	// 403
