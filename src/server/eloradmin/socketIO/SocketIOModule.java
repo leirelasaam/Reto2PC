@@ -3,6 +3,8 @@ package server.eloradmin.socketIO;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 
+import javax.crypto.SecretKey;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
@@ -22,9 +24,10 @@ import server.elorbase.managers.UsersManager;
 import server.elorbase.dtos.ScheduleDTO;
 import server.elorbase.entities.Schedule;
 import server.elorbase.entities.User;
-import server.elorbase.utils.BcryptUtils;
+import server.elorbase.utils.AESUtil;
+import server.elorbase.utils.BcryptUtil;
 import server.elorbase.utils.HibernateUtil;
-import server.elorbase.utils.JSONUtils;
+import server.elorbase.utils.JSONUtil;
 import server.elormail.EmailSender;
 
 import com.google.gson.Gson;
@@ -39,11 +42,13 @@ public class SocketIOModule {
 	private SocketIOServer server = null;
 	private SessionFactory sesion = null;
 	private static final Logger logger = Logger.getLogger(SocketIOModule.class);
+	private SecretKey key = null;
 
-	public SocketIOModule(SocketIOServer server) {
+	public SocketIOModule(SocketIOServer server, SecretKey key) {
 		super();
 		this.server = server;
 		this.sesion = HibernateUtil.getSessionFactory();
+		this.key = key;
 
 		// Default events (for control the connection of clients)
 		server.addConnectListener(onConnect());
@@ -88,49 +93,56 @@ public class SocketIOModule {
 				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
 
 				/*
-				 * Ejemplo de lo que nos llega: { "message": { "email": "user@example.com",
-				 * "password": "1234" } }
+				 * Ejemplo de lo que nos llega: { "login": "user@example.com",
+				 * "password": "1234" }
 				 */
+				
 				Gson gson = new Gson();
 				// Extraer el JSON
 				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
-				// Extraer el message
-				String messageString = jsonObject.get("message").getAsString();
-				// Extraer el JSON dentro de message
-				JsonObject messageJsonObject = gson.fromJson(messageString, JsonObject.class);
+				
 				// Extraer login y password
-				String login = messageJsonObject.get("login").getAsString();
-				String password = messageJsonObject.get("password").getAsString();
+				String login = jsonObject.get("login").getAsString();
+				String password = jsonObject.get("password").getAsString();
 
 				// Buscar el usuario por email
 				UsersManager um = new UsersManager(sesion);
 				User user = um.getByEmailOrPin(login.trim());
+				
 
 				// No se ha encontrado usuario > 404 - NOT FOUND
 				if (user == null) {
 					client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.NOT_FOUND);
 					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
 				} else {
-					if (BcryptUtils.verifyPassword(password, user.getPassword())) {
-						String answerMessage = JSONUtils.getSerializedString(user);
+					System.out.println(user.toString());
+					if (BcryptUtil.verifyPassword(password, user.getPassword())) {
+						// Serializar el objeto user
+	                    String answerMessage = JSONUtil.getSerializedString(user);
+	                    // Encriptar el mensaje que es el que se va a enviar
+	                    String encryptedMessage = AESUtil.encrypt(answerMessage, key);
 
 						// Se ha encontrado el usuario, la contraseña coincide y ya está registrado y es
 						// alumno/profe >
 						// 200 - User
 						if (user.isRegistered() && (user.getRole().getRole().equals("profesor")
 								|| user.getRole().getRole().equals("estudiante"))) {
-							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
+							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, encryptedMessage);
+							
 							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
 							logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
+							logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
 							// Se ha encontrado el usuario, la contraseña coincide y no está registrado o no
 							// es un alumno/profe >
 							// 403 - User
 						} else if ((user.getRole().getRole().equals("profesor")
 								|| user.getRole().getRole().equals("estudiante"))) {
 							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN,
-									answerMessage);
+									encryptedMessage);
+							
 							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
 							logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
+							logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
 						} else {
 							// Es god o admin, no debe acceder a Elorclass
 							client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.BAD_REQUEST);

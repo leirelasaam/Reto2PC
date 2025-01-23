@@ -6,9 +6,9 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 
 import server.elorbase.entities.User;
-import server.elorbase.utils.BcryptUtils;
+import server.elorbase.utils.BcryptUtil;
 import server.elorbase.utils.DBQueries;
-import server.elorbase.utils.JSONUtils;
+import server.elorbase.utils.JSONUtil;
 
 public class UsersManager {
 
@@ -47,7 +47,7 @@ public class UsersManager {
 		Session session = sesion.openSession();
 		session.beginTransaction();
 		
-		String hashedPass = BcryptUtils.getHashedPass(password);
+		String hashedPass = BcryptUtil.getHashedPass(password);
 
 		try {
 			if (user != null) {

@@ -11,7 +11,7 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import server.ServerConfig;
+import server.config.ServerConfig;
 
 public class EmailSender {
 	private String smtpHost;

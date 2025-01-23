@@ -2,7 +2,7 @@ package server.elorbase.utils;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 
-public class BcryptUtils {
+public class BcryptUtil {
 	
 	public static boolean verifyPassword(String password, String storedHash) {
         BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), storedHash.toCharArray());
