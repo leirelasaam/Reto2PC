@@ -23,6 +23,7 @@ import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
 import server.elorbase.dtos.ScheduleDTO;
 import server.elorbase.entities.Schedule;
+import server.elorbase.entities.TeacherSchedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.AESUtil;
 import server.elorbase.utils.BcryptUtil;
@@ -235,26 +236,26 @@ public class SocketIOModule {
 				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
 
 				/*
-				 * Ejemplo de lo que nos llega: { "message": "70"}
+				 * Ejemplo de lo que nos llega: { "id": 70, "week": 1}
 				 */
 				Gson gson = new Gson();
 				// Extraer el JSON
 				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
-				// Extraer el message
-				String id = jsonObject.get("message").getAsString();
-				int id_int = Integer.parseInt(id);
+
+				int teacherId = jsonObject.get("id").getAsInt();
+				int selectedWeek = jsonObject.get("week").getAsInt();
 
 				JsonObject messageObject = new JsonObject();
 				// Buscar schedules por user_id
 				SchedulesManager sm = new SchedulesManager(sesion);
-				ArrayList<Schedule> schedules = sm.getByUserId(id_int);
+				ArrayList<TeacherSchedule> schedules = sm.getTeacherWeeklySchedule(teacherId, selectedWeek);
 				if (schedules != null) {
 					JsonArray schedulesArray = new JsonArray();
-					for (Schedule s : schedules) {
-						ScheduleDTO sDTO = new ScheduleDTO(s);
-						JsonObject scheduleJson = gson.toJsonTree(sDTO).getAsJsonObject();
+					for (TeacherSchedule s : schedules) {
+						JsonObject scheduleJson = gson.toJsonTree(s).getAsJsonObject();
 						schedulesArray.add(scheduleJson);
 					}
+					
 					messageObject.add("schedules", schedulesArray);
 					String messageContent = gson.toJson(messageObject);
 					MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
