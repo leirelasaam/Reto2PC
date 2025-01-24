@@ -11,7 +11,9 @@ public enum Events {
     ON_RESET_PASS_EMAIL("onResetPassEmail"),
     ON_RESET_PASS_EMAIL_ANSWER("onResetPassEmailAnswer"),
     ON_TEACHER_SCHEDULE("onTeacherSchedule"),
-    ON_TEACHER_SCHEDULE_ANSWER("onTeacherScheduleAnswer");
+    ON_TEACHER_SCHEDULE_ANSWER("onTeacherScheduleAnswer"),
+    ON_STUDENT_SCHEDULE("onStudentSchedule"),
+	ON_STUDENT_SCHEDULE_ANSWER("onStudentScheduleAnswer");
 	
 	public final String value;
 

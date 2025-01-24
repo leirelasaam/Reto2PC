@@ -59,6 +59,7 @@ public class SocketIOModule {
 		server.addEventListener(Events.ON_LOGOUT.value, MessageInput.class, this.logout());
 		server.addEventListener(Events.ON_RESET_PASS_EMAIL.value, MessageInput.class, this.sendResetPassEmail());
 		server.addEventListener(Events.ON_TEACHER_SCHEDULE.value, MessageInput.class, this.getTeacherSchedule());
+		server.addEventListener(Events.ON_STUDENT_SCHEDULE.value, MessageInput.class, this.getStudentSchedule());
 	}
 
 	// Default events
@@ -267,6 +268,52 @@ public class SocketIOModule {
 			} catch (Exception e) {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+			}
+		});
+	}
+	
+	private DataListener<MessageInput> getStudentSchedule() {
+		return ((client, data, ackSender) -> {
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Client wants to get the schedule");
+			try {
+				String clientMsg = data.getMessage();
+				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
+
+				/*
+				 * Ejemplo de lo que nos llega: { "message": "70"}
+				 */
+				Gson gson = new Gson();
+				// Extraer el JSON
+				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
+				// Extraer el message
+				String id = jsonObject.get("message").getAsString();
+				int id_int = Integer.parseInt(id);
+
+				JsonObject messageObject = new JsonObject();
+				// Buscar schedules por user_id
+				SchedulesManager sm = new SchedulesManager(sesion);
+				ArrayList<Schedule> schedules = sm.getByUserId(id_int);
+				if (schedules != null) {
+					JsonArray schedulesArray = new JsonArray();
+					for (Schedule s : schedules) {
+						ScheduleDTO sDTO = new ScheduleDTO(s);
+						JsonObject scheduleJson = gson.toJsonTree(sDTO).getAsJsonObject();
+						schedulesArray.add(scheduleJson);
+					}
+					messageObject.add("schedules", schedulesArray);
+					String messageContent = gson.toJson(messageObject);
+					MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
+					client.sendEvent(Events.ON_STUDENT_SCHEDULE_ANSWER.value, messageOutput);
+					logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
+				} else {
+					client.sendEvent(Events.ON_STUDENT_SCHEDULE_ANSWER.value, DefaultMessages.NOT_FOUND);
+					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
+				}
+			} catch (Exception e) {
+				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+				client.sendEvent(Events.ON_STUDENT_SCHEDULE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
 				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
 			}
 		});
