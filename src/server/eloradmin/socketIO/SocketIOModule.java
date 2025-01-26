@@ -220,16 +220,15 @@ public class SocketIOModule {
 				 * Ejemplo de lo que nos llega: { "id": 70, "week": 1}
 				 */
 				Gson gson = new Gson();
-				// Extraer el JSON
 				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
-
 				int teacherId = jsonObject.get("id").getAsInt();
 				int selectedWeek = jsonObject.get("week").getAsInt();
-
 				JsonObject messageObject = new JsonObject();
-				// Buscar schedules por user_id
+				
 				SchedulesManager sm = new SchedulesManager(sesion);
 				ArrayList<TeacherSchedule> schedules = sm.getTeacherWeeklySchedule(teacherId, selectedWeek);
+				
+				MessageOutput msgOut = null;
 				if (schedules != null) {
 					JsonArray schedulesArray = new JsonArray();
 					for (TeacherSchedule s : schedules) {
@@ -239,17 +238,16 @@ public class SocketIOModule {
 					
 					messageObject.add("schedules", schedulesArray);
 					String messageContent = gson.toJson(messageObject);
-					MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
-					client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, messageOutput);
-					logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
+					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
 				} else {
-					client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, DefaultMessages.NOT_FOUND);
-					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
+					msgOut = DefaultMessages.NOT_FOUND;
 				}
+				
+				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, msgOut);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
 			} catch (Exception e) {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
 			}
 		});
 	}
