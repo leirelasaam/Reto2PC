@@ -15,7 +15,7 @@ import server.config.ServerConfig;
 
 public class AESUtil {
 	// Comando para regenerar la clave desde consola: openssl rand -out aes.key 32
-	// Para cargar la clave, solo se va a ejecutar una vez al iniciar el servidor
+	
 	public static SecretKey loadKey() throws FileNotFoundException, IOException {
 		SecretKey key = null;
 		byte[] bytes = null;
@@ -23,7 +23,6 @@ public class AESUtil {
 			Path path = Paths.get(ServerConfig.AES_KEY);
 			bytes = Files.readAllBytes(path);
 			
-			// Si el archivo no esta vacío, convertir en array de bytes en una secret key
 			if (bytes.length == 0) {
                 throw new IOException("El archivo de clave está vacío.");
             } else {
@@ -38,7 +37,6 @@ public class AESUtil {
 		return key;
 	}
 
-	// Cifrado AES
 	public static String encrypt(String data, SecretKey key) throws Exception {
 		String encryptedString = null;
 		Cipher cipher = Cipher.getInstance("AES");
@@ -49,8 +47,12 @@ public class AESUtil {
 		
 		return encryptedString;
 	}
-
-	// Descifrado AES
+	
+	public static String encryptObject(Object obj, SecretKey key) throws Exception {
+        String json = JSONUtil.getSerializedString(obj);
+        return encrypt(json, key);
+    }
+	
 	public static String decrypt(String encryptedData, SecretKey key) throws Exception {
 		String decryptedString = null;
 		Cipher cipher = Cipher.getInstance("AES");
