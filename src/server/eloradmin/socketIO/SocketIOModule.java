@@ -181,31 +181,29 @@ public class SocketIOModule {
 				 * Ejemplo de lo que nos llega: { "message": "ejemplo@usuario.com"}
 				 */
 				Gson gson = new Gson();
-				// Extraer el JSON
 				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
-				// Extraer el message
 				String login = jsonObject.get("message").getAsString();
-
-				// Buscar el usuario por email
+				
 				UsersManager um = new UsersManager(sesion);
 				User user = um.getByEmailOrPin(login);
 
+				MessageOutput msgOut = null;
 				if (user != null) {
 					EmailSender es = new EmailSender();
 					@SuppressWarnings("deprecation")
 					String password = RandomStringUtils.randomAlphanumeric(10);
 					um.updatePasswordByUser(user, password);
-					es.sendEmail(user.getEmail(), "Nueva contraseña", "Contraseña nueva: " + password);
-					client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.OK);
-					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.OK.toString());
+					es.sendEmail(user.getEmail(), "ElorClass - Nueva contraseña", "Contraseña nueva: " + password);
+					msgOut = DefaultMessages.OK;
 				} else {
-					client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.NOT_FOUND);
-					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
+					msgOut = DefaultMessages.NOT_FOUND;
 				}
+				
+				client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, msgOut);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
 			} catch (Exception e) {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
 			}
 		});
 	}
