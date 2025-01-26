@@ -18,7 +18,8 @@ public class MeetingManager {
         this.sesion = sesion;
     }
 
-    // Método para crear una nueva reunión
+    // Método para CREAR NUEVA REUNIÓN
+    
     public void createMeeting(Meetings meeting, List<Participants> participants) {
     	
         // Abrir una nueva sesión de Hibernate

@@ -1,5 +1,7 @@
 package server.eloradmin.socketIO;
 
+import java.util.List;
+
 import org.hibernate.SessionFactory;
 
 import com.corundumstudio.socketio.SocketIOServer;
@@ -38,6 +40,7 @@ public class SocketIOModule {
 		// Custom events
 		server.addEventListener(Events.ON_LOGIN.value, MessageInput.class, this.login());
 		server.addEventListener(Events.ON_LOGOUT.value, MessageInput.class, this.logout());
+		server.addEventListener(Events.ON_GET_ALL_USERS.value, MessageInput.class, this.obtenerUsuariosPorRol());
 	}
 
 	// Default events
@@ -117,5 +120,32 @@ public class SocketIOModule {
 		// Cerrar la sesión bbdd
 		sesion.close();
 		System.out.println("Server stopped");
+	}
+	
+	private DataListener<MessageInput> obtenerUsuariosPorRol() {
+		return ((client, data, ackSender) -> {
+			System.out.println("Client from " + client.getRemoteAddress() + " wants to user");
+
+			// The JSON message from MessageInput
+			String message = data.getMessage();
+			System.out.println("Server received: " + data.getMessage());
+
+			// We parse the JSON into an JsonObject
+			// The JSON should be something like this: {"message": "patata"}
+			Gson gson = new Gson();
+			JsonObject jsonObject = gson.fromJson(message, JsonObject.class);
+			long idRol = jsonObject.get("message").getAsLong();
+			System.out.println("idRol " + idRol);
+
+			UsersManager um = new UsersManager(sesion);
+			List<Users> users = um.getAllByRole(idRol);
+
+			// We parse the answer into JSON
+			String answerMessage = gson.toJson(users);
+
+			// ... and we send it back to the client inside a MessageOutput
+			MessageOutput messageOutput = new MessageOutput(answerMessage);
+			client.sendEvent(Events.ON_GET_ALL_USERS_ANSWER.value, messageOutput);
+		});
 	}
 }

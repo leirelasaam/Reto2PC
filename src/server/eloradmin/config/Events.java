@@ -9,7 +9,8 @@ public enum Events {
 	ON_GET_ALL_USERS ("onGetAll"),
     ON_LOGOUT ("onLogout"),
     ON_LOGIN_ANSWER ("onLoginAnswer"),
-	ON_GET_ALL_USERS_ANSWER ("onGetAllAnswer");
+	ON_GET_ALL_USERS_ANSWER ("onGetAllUsersAnswer");
+
 	
 	public final String value;
 
