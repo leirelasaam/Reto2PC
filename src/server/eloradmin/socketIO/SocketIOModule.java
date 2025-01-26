@@ -21,8 +21,6 @@ import server.eloradmin.model.MessageInput;
 import server.eloradmin.model.MessageOutput;
 import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
-import server.elorbase.dtos.ScheduleDTO;
-import server.elorbase.entities.Schedule;
 import server.elorbase.entities.TeacherSchedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.AESUtil;
@@ -94,15 +92,12 @@ public class SocketIOModule {
 				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
 
 				/*
-				 * Ejemplo de lo que nos llega: { "login": "user@example.com",
-				 * "password": "1234" }
+				 * Ejemplo de lo que nos llega: { "login": "user@example.com", "password": "1234" }
 				 */
 				
-				Gson gson = new Gson();
-				// Extraer el JSON
-				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
-				
 				// Extraer login y password
+				Gson gson = new Gson();
+				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
 				String login = jsonObject.get("login").getAsString();
 				String password = jsonObject.get("password").getAsString();
 
@@ -111,54 +106,42 @@ public class SocketIOModule {
 				User user = um.getByEmailOrPin(login.trim());
 				
 
-				// No se ha encontrado usuario > 404 - NOT FOUND
+				MessageOutput msgOut = null;
+				// No se ha encontrado usuario
 				if (user == null) {
-					client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.NOT_FOUND);
-					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
+					msgOut = DefaultMessages.NOT_FOUND;
 				} else {
-					System.out.println(user.toString());
+					// Se ha encontrado el usuario
 					if (BcryptUtil.verifyPassword(password, user.getPassword())) {
-						// Serializar el objeto user
+						// Encriptar el objeto usuario
 	                    String answerMessage = JSONUtil.getSerializedString(user);
-	                    // Encriptar el mensaje que es el que se va a enviar
+	                    logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
 	                    String encryptedMessage = AESUtil.encrypt(answerMessage, key);
-
-						// Se ha encontrado el usuario, la contraseña coincide y ya está registrado y es
-						// alumno/profe >
-						// 200 - User
+	                    
+	                    // Está registrado y su rol es profe/estudiante
 						if (user.isRegistered() && (user.getRole().getRole().equals("profesor")
 								|| user.getRole().getRole().equals("estudiante"))) {
-							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, encryptedMessage);
-							
-							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
-							logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
-							logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
-							// Se ha encontrado el usuario, la contraseña coincide y no está registrado o no
-							// es un alumno/profe >
-							// 403 - User
+							msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, encryptedMessage);
+						// No está registrado y su rol es profe/estudiante
 						} else if ((user.getRole().getRole().equals("profesor")
 								|| user.getRole().getRole().equals("estudiante"))) {
-							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN,
+							msgOut = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN,
 									encryptedMessage);
-							
-							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
-							logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
-							logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
-						} else {
-							// Es god o admin, no debe acceder a Elorclass
-							client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.BAD_REQUEST);
-							logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.BAD_REQUEST.toString());
+						// Es god o admin, no debe acceder a Elorclass
+						} else {	
+							msgOut = DefaultMessages.BAD_REQUEST;
 						}
-						// Se ha encontrado el usuario y la contraseña no coincide > 401 - UNAUTHORIZEDs
+					// Se ha encontrado el usuario y la contraseña no coincide
 					} else {
-						client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.UNAUTHORIZED);
-						logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.UNAUTHORIZED.toString());
+						msgOut = DefaultMessages.UNAUTHORIZED;
 					}
 				}
+				
+				client.sendEvent(Events.ON_LOGIN_ANSWER.value, msgOut);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
 			} catch (Exception e) {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
 			}
 
 		});
