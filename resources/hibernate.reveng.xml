@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-reverse-engineering PUBLIC "-//Hibernate/Hibernate Reverse Engineering DTD 3.0//EN" "http://hibernate.org/dtd/hibernate-reverse-engineering-3.0.dtd" >
+
+<hibernate-reverse-engineering>
+	<table-filter match-name="enrollments" match-catalog="laravel"></table-filter>
+	<table-filter match-name="cycles" match-catalog="laravel"></table-filter>
+	<table-filter match-name="meetings" match-catalog="laravel"></table-filter>
+	<table-filter match-name="modules" match-catalog="laravel"></table-filter>
+	<table-filter match-name="participants" match-catalog="laravel"></table-filter>
+	<table-filter match-name="roles" match-catalog="laravel"></table-filter>
+	<table-filter match-name="schedules" match-catalog="laravel"></table-filter>
+	<table-filter match-name="users" match-catalog="laravel"></table-filter>
+</hibernate-reverse-engineering>

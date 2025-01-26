@@ -4,39 +4,39 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-import server.elorbase.model.Participants;
+import server.elorbase.entities.Participant;
 
 public class ParticipantsManager {
 
-    private SessionFactory sesion;
+	private SessionFactory sesion;
 
-    public ParticipantsManager(SessionFactory sesion) {
-        this.sesion = sesion;
-    }
+	public ParticipantsManager(SessionFactory sesion) {
+		this.sesion = sesion;
+	}
 
-    // Método para crear una nueva reunión
-    public void createParticipants(Participants participants) {
-    	
-        // Abrir una nueva sesión de Hibernate
-        Session session = sesion.openSession();
-        Transaction transaction = null;
+	// Método para crear una nueva reunión
+	public void createParticipants(Participant participants) {
 
-        try {
-            transaction = session.beginTransaction();
+		// Abrir una nueva sesión de Hibernate
+		Session session = sesion.openSession();
+		Transaction transaction = null;
 
-            participants.setStatus("pendiente"); // Estado predeterminado
+		try {
+			transaction = session.beginTransaction();
 
-            session.persist(participants);
-            
-            // Confirmar la transacción
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            e.printStackTrace();
-        } finally {
-            session.close();
-        }
-    }
+			participants.setStatus("pendiente"); // Estado predeterminado
+
+			session.persist(participants);
+
+			// Confirmar la transacción
+			transaction.commit();
+		} catch (Exception e) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+			e.printStackTrace();
+		} finally {
+			session.close();
+		}
+	}
 }

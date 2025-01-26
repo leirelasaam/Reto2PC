@@ -7,8 +7,8 @@ package server.eloradmin.model;
  */
 public class MessageOutput extends AbstractMessage{
 
-	public MessageOutput(String message) {
-		super(message);
+	public MessageOutput(int code, String message) {
+		super(code, message);
 	}
 
 }

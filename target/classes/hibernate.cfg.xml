@@ -10,13 +10,14 @@
         <property name="hibernate.hbm2ddl.auto">none</property>
         <property name="hibernate.search.autoregister_listeners">true</property>
         <property name="hibernate.validator.apply_to_ddl">false</property>
-        <mapping resource="mapping/Roles.hbm.xml"/>
-        <mapping resource="mapping/Users.hbm.xml"/>
-        <mapping resource="mapping/Modules.hbm.xml"/>
-        <mapping resource="mapping/Schedules.hbm.xml"/>
-        <mapping resource="mapping/Meetings.hbm.xml"/>
-        <mapping resource="mapping/Cycles.hbm.xml"/>
-        <mapping resource="mapping/Enrollments.hbm.xml"/>
-        <mapping resource="mapping/Participants.hbm.xml"/>
+        <property name="hibernate.transaction.jta.platform">org.hibernate.engine.transaction.internal.jta.JtaPlatformProvider</property>
+        <mapping resource="mapping/Role.hbm.xml"/>
+        <mapping resource="mapping/User.hbm.xml"/>
+        <mapping resource="mapping/Module.hbm.xml"/>
+        <mapping resource="mapping/Schedule.hbm.xml"/>
+        <mapping resource="mapping/Meeting.hbm.xml"/>
+        <mapping resource="mapping/Cycle.hbm.xml"/>
+        <mapping resource="mapping/Enrollment.hbm.xml"/>
+        <mapping resource="mapping/Participant.hbm.xml"/>
     </session-factory>
 </hibernate-configuration>
