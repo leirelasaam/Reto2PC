@@ -21,8 +21,10 @@ import server.eloradmin.config.Events;
 import server.eloradmin.model.DefaultMessages;
 import server.eloradmin.model.MessageInput;
 import server.eloradmin.model.MessageOutput;
+import server.elorbase.managers.MeetingManager;
 import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
+import server.elorbase.entities.Meeting;
 import server.elorbase.entities.TeacherSchedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.AESUtil;
@@ -58,10 +60,10 @@ public class SocketIOModule {
 		// Custom events
 		server.addEventListener(Events.ON_LOGIN.value, MessageInput.class, this.login());
 		server.addEventListener(Events.ON_LOGOUT.value, MessageInput.class, this.logout());
-		server.addEventListener(Events.ON_GET_ALL_USERS.value, MessageInput.class, this.obtenerUsuariosPorRol());
+		server.addEventListener(Events.ON_GET_ALL_USERS.value, MessageInput.class, this.getUsersByRole());
 		server.addEventListener(Events.ON_RESET_PASS_EMAIL.value, MessageInput.class, this.sendResetPassEmail());
 		server.addEventListener(Events.ON_TEACHER_SCHEDULE.value, MessageInput.class, this.getTeacherSchedule());
-
+		server.addEventListener(Events.ON_CREATE_MEETING.value, MessageInput.class, this.createMeeting());
 	}
 
 	// Default events
@@ -98,9 +100,10 @@ public class SocketIOModule {
 				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
 
 				/*
-				 * Ejemplo de lo que nos llega: { "login": "user@example.com", "password": "1234" }
+				 * Ejemplo de lo que nos llega: { "login": "user@example.com", "password":
+				 * "1234" }
 				 */
-				
+
 				// Extraer login y password
 				Gson gson = new Gson();
 				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
@@ -110,7 +113,6 @@ public class SocketIOModule {
 				// Buscar el usuario por email
 				UsersManager um = new UsersManager(sesion);
 				User user = um.getByEmailOrPin(login.trim());
-				
 
 				MessageOutput msgOut = null;
 				// No se ha encontrado usuario
@@ -120,34 +122,33 @@ public class SocketIOModule {
 					// Se ha encontrado el usuario
 					if (BcryptUtil.verifyPassword(password, user.getPassword())) {
 						// Encriptar el objeto usuario
-	                    String answerMessage = JSONUtil.getSerializedString(user);
-	                    logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
-	                    // Está registrado y su rol es profe/estudiante
+						String answerMessage = JSONUtil.getSerializedString(user);
+						logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
+						// Está registrado y su rol es profe/estudiante
 						if (user.isRegistered() && (user.getRole().getRole().equals("profesor")
 								|| user.getRole().getRole().equals("estudiante"))) {
 							msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
-						// No está registrado y su rol es profe/estudiante
+							// No está registrado y su rol es profe/estudiante
 						} else if ((user.getRole().getRole().equals("profesor")
 								|| user.getRole().getRole().equals("estudiante"))) {
-							msgOut = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN,
-									answerMessage);
-						// Es god o admin, no debe acceder a Elorclass
-						} else {	
+							msgOut = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN, answerMessage);
+							// Es god o admin, no debe acceder a Elorclass
+						} else {
 							msgOut = DefaultMessages.BAD_REQUEST;
 						}
-					// Se ha encontrado el usuario y la contraseña no coincide
+						// Se ha encontrado el usuario y la contraseña no coincide
 					} else {
 						msgOut = DefaultMessages.UNAUTHORIZED;
 					}
 				}
-				
+
 				encryptedMsg = AESUtil.encryptObject(msgOut, key);
 				client.sendEvent(Events.ON_LOGIN_ANSWER.value, encryptedMsg);
 				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
 			} catch (Exception e) {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
-				client.sendEvent(Events.ON_LOGIN_ANSWER.value,  encryptedMsg);
+				client.sendEvent(Events.ON_LOGIN_ANSWER.value, encryptedMsg);
 			}
 
 		});
@@ -191,7 +192,7 @@ public class SocketIOModule {
 				Gson gson = new Gson();
 				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
 				String login = jsonObject.get("message").getAsString();
-				
+
 				UsersManager um = new UsersManager(sesion);
 				User user = um.getByEmailOrPin(login);
 
@@ -206,7 +207,7 @@ public class SocketIOModule {
 				} else {
 					msgOut = DefaultMessages.NOT_FOUND;
 				}
-				
+
 				encryptedMsg = AESUtil.encryptObject(msgOut, key);
 				client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, encryptedMsg);
 				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
@@ -235,10 +236,10 @@ public class SocketIOModule {
 				int teacherId = jsonObject.get("id").getAsInt();
 				int selectedWeek = jsonObject.get("week").getAsInt();
 				JsonObject messageObject = new JsonObject();
-				
+
 				SchedulesManager sm = new SchedulesManager(sesion);
 				ArrayList<TeacherSchedule> schedules = sm.getTeacherWeeklySchedule(teacherId, selectedWeek);
-				
+
 				MessageOutput msgOut = null;
 				if (schedules != null) {
 					JsonArray schedulesArray = new JsonArray();
@@ -246,14 +247,14 @@ public class SocketIOModule {
 						JsonObject scheduleJson = gson.toJsonTree(s).getAsJsonObject();
 						schedulesArray.add(scheduleJson);
 					}
-					
+
 					messageObject.add("schedules", schedulesArray);
 					String messageContent = gson.toJson(messageObject);
 					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
 				} else {
 					msgOut = DefaultMessages.NOT_FOUND;
 				}
-				
+
 				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, msgOut);
 				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
 			} catch (Exception e) {
@@ -276,31 +277,108 @@ public class SocketIOModule {
 		logger.info("Server stopped");
 	}
 
-	
-	private DataListener<MessageInput> obtenerUsuariosPorRol() {
+	private DataListener<MessageInput> getUsersByRole() {
 		return ((client, data, ackSender) -> {
-			System.out.println("Client from " + client.getRemoteAddress() + " wants to user");
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Client wants to get users by role");
 
-			// The JSON message from MessageInput
-			String message = data.getMessage();
-			System.out.println("Server received: " + data.getMessage());
+			String encryptedMsg = null;
+			try {
+				// Obtener y desencriptar el mensaje recibido
+				String clientMsg = data.getMessage();
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
 
-			// We parse the JSON into an JsonObject
-			// The JSON should be something like this: {"message": "patata"}
-			Gson gson = new Gson();
-			JsonObject jsonObject = gson.fromJson(message, JsonObject.class);
-			long idRol = jsonObject.get("message").getAsLong();
-			System.out.println("idRol " + idRol);
+				/*
+				 * Ejemplo de lo que nos llega: { "role": "profesor" }
+				 */
 
-			UsersManager um = new UsersManager(sesion);
-			List<User> users = um.getAllByRole(idRol);
+				// Extraer el rol del mensaje JSON
+				Gson gson = new Gson();
+				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
+				int roleId = jsonObject.get("roleId").getAsInt();
 
-			// We parse the answer into JSON
-			String answerMessage = gson.toJson(users);
+				// Buscar los usuarios por rol
+				UsersManager um = new UsersManager(sesion);
+				List<User> users = um.getUsersByRole(roleId);
 
-			// ... and we send it back to the client inside a MessageOutput
-			//MessageOutput messageOutput = new MessageOutput(answerMessage);
-			//client.sendEvent(Events.ON_GET_ALL_USERS_ANSWER.value, messageOutput);
+				MessageOutput msgOut = null;
+
+				// Si no se encuentran usuarios con el rol especificado
+				if (users == null || users.isEmpty()) {
+					msgOut = DefaultMessages.NOT_FOUND;
+				} else {
+					// Serializar la lista de usuarios y enviarla como respuesta
+					String usersJson = JSONUtil.getSerializedString(users);
+					logger.debug("[Client = " + ip + "] Users found: " + usersJson);
+
+					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, usersJson);
+				}
+
+				// Enviar la respuesta encriptada al cliente
+				encryptedMsg = AESUtil.encryptObject(msgOut, key);
+				client.sendEvent(Events.ON_GET_ALL_USERS_ANSWER.value, encryptedMsg);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
+			} catch (Exception e) {
+				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
+				client.sendEvent(Events.ON_GET_ALL_USERS_ANSWER.value, encryptedMsg);
+			}
+		});
+	}
+
+	private DataListener<MessageInput> createMeeting() {
+		return ((client, data, ackSender) -> {
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Client wants to create a meeting");
+
+			String encryptedMsg = null;
+			try {
+				// Decrypt the incoming message
+				String clientMsg = data.getMessage();
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
+
+				/*
+				 * Example input JSON: { "title": "Team Meeting", "description":
+				 * "Discuss project milestones", "day": , "hour": "1",
+				 * "organizerId": 1 }
+				 */
+
+				// Parse the JSON input
+				Gson gson = new Gson();
+				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
+				Meeting meetingAInsertar = new Meeting();
+				meetingAInsertar.setDay(jsonObject.get("date").getAsByte());
+				meetingAInsertar.setTime(jsonObject.get("time").getAsByte());
+				//int organizerId = jsonObject.get("organizerId").getAsInt();
+
+				// Create a new meeting using MeetingManager
+				MeetingManager meetingManager = new MeetingManager(sesion);
+				Meeting meetingCreada = meetingManager.createMeeting(meetingAInsertar, null);
+
+				MessageOutput msgOut;
+
+				if (meetingCreada != null) {
+					// Serialize the created meeting
+					String meetingJson = JSONUtil.getSerializedString(meetingCreada);
+					logger.debug("[Client = " + ip + "] Meeting created: " + meetingJson);
+
+					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, meetingJson);
+				} else {
+					msgOut = DefaultMessages.INTERNAL_SERVER;
+				}
+
+				// Encrypt and send the response
+				encryptedMsg = AESUtil.encryptObject(msgOut, key);
+				client.sendEvent(Events.ON_CREATE_MEETING_ANSWER.value, encryptedMsg);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
+
+			} catch (Exception e) {
+				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
+				client.sendEvent(Events.ON_CREATE_MEETING_ANSWER.value, encryptedMsg);
+			}
 		});
 	}
 }

@@ -45,7 +45,7 @@ public class UsersManager {
 		return u;
 	}
 
-	public List<User> getAllByRole(long idRole) {
+	public List<User> getUsersByRole(long idRole) {
 
 		Session session = sesion.openSession();
 		String hql = DBQueries.U_BY_ROLE;

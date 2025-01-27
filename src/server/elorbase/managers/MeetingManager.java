@@ -19,7 +19,7 @@ public class MeetingManager {
 
 	// Método para CREAR NUEVA REUNIÓN
 
-	public void createMeeting(Meeting meeting, List<Participant> participants) {
+	public Meeting createMeeting(Meeting meeting, List<Participant> participants) {
 
 		// Abrir una nueva sesión de Hibernate
 		Session session = sesion.openSession();
@@ -53,5 +53,7 @@ public class MeetingManager {
 		} finally {
 			session.close();
 		}
+		
+		return meeting;
 	}
 }
