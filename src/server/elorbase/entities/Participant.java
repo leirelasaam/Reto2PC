@@ -1,5 +1,5 @@
 package server.elorbase.entities;
-// Generated 18 ene 2025, 9:48:26 by Hibernate Tools 6.5.1.Final
+// Generated 27 ene 2025, 19:50:40 by Hibernate Tools 6.5.1.Final
 
 import java.sql.Timestamp;
 
@@ -9,27 +9,27 @@ import java.sql.Timestamp;
 public class Participant implements java.io.Serializable {
 
 	private Long id;
+	private User user;
+	private Meeting meeting;
+	private String status;
 	private Timestamp createdAt;
 	private Timestamp updatedAt;
-	private long meetingId;
-	private long userId;
-	private String status;
 
 	public Participant() {
 	}
 
-	public Participant(long meetingId, long userId, String status) {
-		this.meetingId = meetingId;
-		this.userId = userId;
+	public Participant(User user, Meeting meeting, String status) {
+		this.user = user;
+		this.meeting = meeting;
 		this.status = status;
 	}
 
-	public Participant(Timestamp createdAt, Timestamp updatedAt, long meetingId, long userId, String status) {
+	public Participant(User user, Meeting meetings, String status, Timestamp createdAt, Timestamp updatedAt) {
+		this.user = user;
+		this.meeting = meeting;
+		this.status = status;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
-		this.meetingId = meetingId;
-		this.userId = userId;
-		this.status = status;
 	}
 
 	public Long getId() {
@@ -38,6 +38,30 @@ public class Participant implements java.io.Serializable {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public User getUser() {
+		return this.user;
+	}
+
+	public void setUsers(User user) {
+		this.user = user;
+	}
+
+	public Meeting getMeeting() {
+		return this.meeting;
+	}
+
+	public void setMeeting(Meeting meeting) {
+		this.meeting = meeting;
+	}
+
+	public String getStatus() {
+		return this.status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
 	public Timestamp getCreatedAt() {
@@ -54,30 +78,6 @@ public class Participant implements java.io.Serializable {
 
 	public void setUpdatedAt(Timestamp updatedAt) {
 		this.updatedAt = updatedAt;
-	}
-
-	public long getMeetingId() {
-		return this.meetingId;
-	}
-
-	public void setMeetingId(long meetingId) {
-		this.meetingId = meetingId;
-	}
-
-	public long getUserId() {
-		return this.userId;
-	}
-
-	public void setUserId(long userId) {
-		this.userId = userId;
-	}
-
-	public String getStatus() {
-		return this.status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
 	}
 
 }

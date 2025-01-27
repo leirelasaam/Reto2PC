@@ -9,16 +9,17 @@
         <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
         <property name="hibernate.hbm2ddl.auto">none</property>
         <property name="hibernate.search.autoregister_listeners">true</property>
-        <property name="hibernate.validator.apply_to_ddl">false</property>
         <property name="hibernate.transaction.jta.platform">org.hibernate.engine.transaction.internal.jta.JtaPlatformProvider</property>
-        <mapping resource="mapping/Role.hbm.xml"/>
-        <mapping resource="mapping/User.hbm.xml"/>
-        <mapping resource="mapping/Module.hbm.xml"/>
-        <mapping resource="mapping/Schedule.hbm.xml"/>
-        <mapping resource="mapping/Meeting.hbm.xml"/>
-        <mapping resource="mapping/Cycle.hbm.xml"/>
-        <mapping resource="mapping/Enrollment.hbm.xml"/>
-        <mapping resource="mapping/Participant.hbm.xml"/>
-        <mapping resource="mapping/Course.hbm.xml"/>
+        <property name="hibernate.validator.apply_to_ddl">false</property>
+        <mapping resource="prueba/Meetings.hbm.xml"/>
+        <mapping resource="prueba/Schedules.hbm.xml"/>
+        <mapping resource="prueba/Participants.hbm.xml"/>
+        <mapping resource="prueba/Courses.hbm.xml"/>
+        <mapping resource="prueba/Documents.hbm.xml"/>
+        <mapping resource="prueba/Enrollments.hbm.xml"/>
+        <mapping resource="prueba/Modules.hbm.xml"/>
+        <mapping resource="prueba/Roles.hbm.xml"/>
+        <mapping resource="prueba/Cycles.hbm.xml"/>
+        <mapping resource="prueba/Users.hbm.xml"/>
     </session-factory>
 </hibernate-configuration>

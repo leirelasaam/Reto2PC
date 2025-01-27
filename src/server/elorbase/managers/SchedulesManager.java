@@ -62,7 +62,7 @@ public class SchedulesManager {
 			query.setParameter("selected_week", selectedWeek);
 
 			List<TeacherSchedule> filas = query.getResultList();
-			if (filas.size() > 0) {
+			if (filas != null && filas.size() > 0) {
 				for (TeacherSchedule fila : filas) {
 					if (schedules == null)
 						schedules = new ArrayList<TeacherSchedule>();

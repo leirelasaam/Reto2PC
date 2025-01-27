@@ -20,8 +20,8 @@ public class Server {
 	
 		try {
 			// Buscar IP local y establecerla
-			String hostName = InetAddress.getLocalHost().getHostAddress();
-			config.setHostname(hostName);
+			//String hostName = InetAddress.getLocalHost().getHostAddress();
+			//config.setHostname(hostName);
 			logger.info("Hostname: " + config.getHostname());
 			
 			// Probar encriptación
