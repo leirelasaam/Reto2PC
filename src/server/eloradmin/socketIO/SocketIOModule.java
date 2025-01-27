@@ -23,6 +23,7 @@ import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
 import server.elorbase.dtos.ScheduleDTO;
 import server.elorbase.entities.Schedule;
+import server.elorbase.entities.TeacherSchedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.AESUtil;
 import server.elorbase.utils.BcryptUtil;
@@ -89,20 +90,19 @@ public class SocketIOModule {
 			String ip = client.getRemoteAddress().toString();
 			logger.info("[Client = " + ip + "] Client wants to login");
 
+			String encryptedMsg = null;
 			try {
 				String clientMsg = data.getMessage();
-				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
 
 				/*
-				 * Ejemplo de lo que nos llega: { "login": "user@example.com",
-				 * "password": "1234" }
+				 * Ejemplo de lo que nos llega: { "login": "user@example.com", "password": "1234" }
 				 */
 				
-				Gson gson = new Gson();
-				// Extraer el JSON
-				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
-				
 				// Extraer login y password
+				Gson gson = new Gson();
+				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
 				String login = jsonObject.get("login").getAsString();
 				String password = jsonObject.get("password").getAsString();
 
@@ -111,54 +111,42 @@ public class SocketIOModule {
 				User user = um.getByEmailOrPin(login.trim());
 				
 
-				// No se ha encontrado usuario > 404 - NOT FOUND
+				MessageOutput msgOut = null;
+				// No se ha encontrado usuario
 				if (user == null) {
-					client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.NOT_FOUND);
-					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
+					msgOut = DefaultMessages.NOT_FOUND;
 				} else {
-					System.out.println(user.toString());
+					// Se ha encontrado el usuario
 					if (BcryptUtil.verifyPassword(password, user.getPassword())) {
-						// Serializar el objeto user
+						// Encriptar el objeto usuario
 	                    String answerMessage = JSONUtil.getSerializedString(user);
-	                    // Encriptar el mensaje que es el que se va a enviar
-	                    String encryptedMessage = AESUtil.encrypt(answerMessage, key);
-
-						// Se ha encontrado el usuario, la contraseña coincide y ya está registrado y es
-						// alumno/profe >
-						// 200 - User
+	                    logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
+	                    // Está registrado y su rol es profe/estudiante
 						if (user.isRegistered() && (user.getRole().getRole().equals("profesor")
 								|| user.getRole().getRole().equals("estudiante"))) {
-							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, encryptedMessage);
-							
-							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
-							logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
-							logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
-							// Se ha encontrado el usuario, la contraseña coincide y no está registrado o no
-							// es un alumno/profe >
-							// 403 - User
+							msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
+						// No está registrado y su rol es profe/estudiante
 						} else if ((user.getRole().getRole().equals("profesor")
 								|| user.getRole().getRole().equals("estudiante"))) {
-							MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN,
-									encryptedMessage);
-							
-							client.sendEvent(Events.ON_LOGIN_ANSWER.value, messageOutput);
-							logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
-							logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
-						} else {
-							// Es god o admin, no debe acceder a Elorclass
-							client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.BAD_REQUEST);
-							logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.BAD_REQUEST.toString());
+							msgOut = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN,
+									answerMessage);
+						// Es god o admin, no debe acceder a Elorclass
+						} else {	
+							msgOut = DefaultMessages.BAD_REQUEST;
 						}
-						// Se ha encontrado el usuario y la contraseña no coincide > 401 - UNAUTHORIZEDs
+					// Se ha encontrado el usuario y la contraseña no coincide
 					} else {
-						client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.UNAUTHORIZED);
-						logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.UNAUTHORIZED.toString());
+						msgOut = DefaultMessages.UNAUTHORIZED;
 					}
 				}
+				
+				encryptedMsg = AESUtil.encryptObject(msgOut, key);
+				client.sendEvent(Events.ON_LOGIN_ANSWER.value, encryptedMsg);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
 			} catch (Exception e) {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
-				client.sendEvent(Events.ON_LOGIN_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
+				client.sendEvent(Events.ON_LOGIN_ANSWER.value,  encryptedMsg);
 			}
 
 		});
@@ -190,39 +178,41 @@ public class SocketIOModule {
 			String ip = client.getRemoteAddress().toString();
 			logger.info("[Client = " + ip + "] Client wants to reset password");
 
+			String encryptedMsg = null;
 			try {
 				String clientMsg = data.getMessage();
-				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
 
 				/*
 				 * Ejemplo de lo que nos llega: { "message": "ejemplo@usuario.com"}
 				 */
 				Gson gson = new Gson();
-				// Extraer el JSON
-				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
-				// Extraer el message
+				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
 				String login = jsonObject.get("message").getAsString();
-
-				// Buscar el usuario por email
+				
 				UsersManager um = new UsersManager(sesion);
 				User user = um.getByEmailOrPin(login);
 
+				MessageOutput msgOut = null;
 				if (user != null) {
 					EmailSender es = new EmailSender();
 					@SuppressWarnings("deprecation")
 					String password = RandomStringUtils.randomAlphanumeric(10);
 					um.updatePasswordByUser(user, password);
-					es.sendEmail(user.getEmail(), "Nueva contraseña", "Contraseña nueva: " + password);
-					client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.OK);
-					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.OK.toString());
+					es.sendEmail(user.getEmail(), "ElorClass - Nueva contraseña", "Contraseña nueva: " + password);
+					msgOut = DefaultMessages.OK;
 				} else {
-					client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.NOT_FOUND);
-					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
+					msgOut = DefaultMessages.NOT_FOUND;
 				}
+				
+				encryptedMsg = AESUtil.encryptObject(msgOut, key);
+				client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, encryptedMsg);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
 			} catch (Exception e) {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
-				client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
+				client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, encryptedMsg);
 			}
 		});
 	}
@@ -233,42 +223,41 @@ public class SocketIOModule {
 			logger.info("[Client = " + ip + "] Client wants to get the schedule");
 			try {
 				String clientMsg = data.getMessage();
-				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
 
 				/*
-				 * Ejemplo de lo que nos llega: { "message": "70"}
+				 * Ejemplo de lo que nos llega: { "id": 70, "week": 1}
 				 */
 				Gson gson = new Gson();
-				// Extraer el JSON
-				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
-				// Extraer el message
-				String id = jsonObject.get("message").getAsString();
-				int id_int = Integer.parseInt(id);
-
+				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
+				int teacherId = jsonObject.get("id").getAsInt();
+				int selectedWeek = jsonObject.get("week").getAsInt();
 				JsonObject messageObject = new JsonObject();
-				// Buscar schedules por user_id
+				
 				SchedulesManager sm = new SchedulesManager(sesion);
-				ArrayList<Schedule> schedules = sm.getByUserId(id_int);
+				ArrayList<TeacherSchedule> schedules = sm.getTeacherWeeklySchedule(teacherId, selectedWeek);
+				
+				MessageOutput msgOut = null;
 				if (schedules != null) {
 					JsonArray schedulesArray = new JsonArray();
-					for (Schedule s : schedules) {
-						ScheduleDTO sDTO = new ScheduleDTO(s);
-						JsonObject scheduleJson = gson.toJsonTree(sDTO).getAsJsonObject();
+					for (TeacherSchedule s : schedules) {
+						JsonObject scheduleJson = gson.toJsonTree(s).getAsJsonObject();
 						schedulesArray.add(scheduleJson);
 					}
+					
 					messageObject.add("schedules", schedulesArray);
 					String messageContent = gson.toJson(messageObject);
-					MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
-					client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, messageOutput);
-					logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
+					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
 				} else {
-					client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, DefaultMessages.NOT_FOUND);
-					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
+					msgOut = DefaultMessages.NOT_FOUND;
 				}
+				
+				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, msgOut);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
 			} catch (Exception e) {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
 			}
 		});
 	}

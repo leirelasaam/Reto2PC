@@ -15,14 +15,12 @@ public class JSONUtil {
 	 */
 	public static String getSerializedString(Object o) throws JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         return objectMapper.writeValueAsString(o);
 	}
 	
 	public static <T> T getFromJSON(String json, Class<T> clase) throws JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         return objectMapper.readValue(json, clase);
 	}
