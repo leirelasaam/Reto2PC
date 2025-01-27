@@ -21,6 +21,8 @@ import server.eloradmin.model.MessageInput;
 import server.eloradmin.model.MessageOutput;
 import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
+import server.elorbase.dtos.ScheduleDTO;
+import server.elorbase.entities.Schedule;
 import server.elorbase.entities.TeacherSchedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.AESUtil;
@@ -58,6 +60,15 @@ public class SocketIOModule {
 		server.addEventListener(Events.ON_LOGOUT.value, MessageInput.class, this.logout());
 		server.addEventListener(Events.ON_RESET_PASS_EMAIL.value, MessageInput.class, this.sendResetPassEmail());
 		server.addEventListener(Events.ON_TEACHER_SCHEDULE.value, MessageInput.class, this.getTeacherSchedule());
+		
+		//Registro - Cargar datos del usuario en el registro
+		server.addEventListener(Events.ON_REGISTER_INFO.value, MessageInput.class, this.getUserDataForSignUp());
+	    
+	    //Registro - Guardar datos actualizados del usuario en la BBDD
+	    server.addEventListener(Events.ON_REGISTER_UPDATE.value, MessageInput.class, this.saveUpdatedSignUpData());
+
+	    //server.addEventListener(Events.ON_REGISTER_INFO_ANSWER.value, MessageInput.class, this.sendResetPassEmail());
+	    //server.addEventListener(Events.ON_REGISTER_UPDATE_ANSWER.value, MessageInput.class, this.sendResetPassEmail());
 	}
 
 	// Default events
@@ -258,6 +269,146 @@ public class SocketIOModule {
 			}
 		});
 	}
+	
+	private DataListener<MessageInput> getUserDataForSingUp1() {
+		return ((client, data, ackSender) -> {
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Client wants to sign up");
+			try {
+				String clientMsg = data.getMessage();
+				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
+
+				/*
+				 * Ejemplo de lo que nos llega: { "message": "70"}
+				 */
+				Gson gson = new Gson();
+				// Extraer el JSON
+				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
+				// Extraer el message
+				String id = jsonObject.get("message").getAsString();
+				int id_int = Integer.parseInt(id);
+
+				JsonObject messageObject = new JsonObject();
+				
+				// Obtener datos del registro por id +++++++++++++++++++++++++++++++++++++++++++
+				SchedulesManager sm = new SchedulesManager(sesion);
+				ArrayList<Schedule> schedules = sm.getByUserId(id_int);
+				if (schedules != null) {
+					JsonArray schedulesArray = new JsonArray();
+					for (Schedule s : schedules) {
+						ScheduleDTO sDTO = new ScheduleDTO(s);
+						JsonObject scheduleJson = gson.toJsonTree(sDTO).getAsJsonObject();
+						schedulesArray.add(scheduleJson);
+					}
+					messageObject.add("schedules", schedulesArray);
+					String messageContent = gson.toJson(messageObject);
+					MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
+					client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, messageOutput);
+					logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
+				} else {
+					client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, DefaultMessages.NOT_FOUND);
+					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
+				}
+			} catch (Exception e) {
+				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+			}
+		});
+	}
+	
+	//Comprobar que las funciones funcionan correctamente
+	private DataListener<MessageInput> getUserDataForSignUp() {
+	    return ((client, data, ackSender) -> {
+	        String ip = client.getRemoteAddress().toString();
+	        logger.info("[Client = " + ip + "] Client requested user data for sign-up");
+
+	        try {
+	            String clientMsg = data.getMessage();
+	            logger.debug("[Client = " + ip + "] Server received: " + clientMsg);
+
+	            /*
+	             * Ejemplo de lo que nos llega: { "message": { "id": "1234" } }
+	             */
+	            Gson gson = new Gson();
+	            // Extraer el JSON
+	            JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
+	            // Extraer el message
+	            String messageString = jsonObject.get("message").getAsString();
+	            // Extraer el JSON dentro de message
+	            JsonObject messageJsonObject = gson.fromJson(messageString, JsonObject.class);
+	            // Extraer el login del usuario
+	            String login = messageJsonObject.get("login").getAsString();
+
+	            // Buscar el usuario por email
+	            UsersManager um = new UsersManager(sesion);
+				User user = um.getByEmailOrPin(login.trim());
+
+	            // No se ha encontrado el usuario > 404 - NOT FOUND
+	            if (user == null) {
+	                client.sendEvent(Events.ON_REGISTER_INFO_ANSWER.value, DefaultMessages.NOT_FOUND);
+	                logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
+	            } else {
+	                // Usuario encontrado, enviar todos los datos
+	               // String answerMessage = JSONUtils.getSerializedString(user);
+	                //MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
+	                //client.sendEvent(Events.ON_REGISTER_INFO_ANSWER.value, messageOutput);
+	                //logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
+	                
+	                
+	            }
+	        } catch (Exception e) {
+	            logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+	            client.sendEvent(Events.ON_REGISTER_INFO_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+	            logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+	        }
+	    });
+	}
+
+	//Comprobar que las funciones funcionan correctamente
+	private DataListener<MessageInput> saveUpdatedSignUpData() {
+	    return ((client, data, ackSender) -> {
+	        String ip = client.getRemoteAddress().toString();
+	        logger.info("[Client = " + ip + "] Client wants to update SignUp data.");
+
+	        try {
+	            String clientMsg = data.getMessage();
+	            logger.debug("[Client = " + ip + "] Server received: " + clientMsg);
+
+	            // Deserializar el JSON recibido
+	            Gson gson = new Gson();
+	            User updatedUser = gson.fromJson(clientMsg, User.class);
+
+	            // Validar que el usuario recibido no sea nulo
+	            if (updatedUser == null || updatedUser.getId() == null) {
+	                client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.BAD_REQUEST);
+	                logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.BAD_REQUEST.toString());
+	                return;
+	            }
+
+	            // Actualizar los datos en la base de datos
+	            UsersManager um = new UsersManager(sesion);
+	            boolean updated = um.updateUser(updatedUser);
+
+	            if (updated) {
+	                // Actualización exitosa: 200 OK
+	                client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.OK);
+	                logger.debug("[Client = " + ip + "] User updated successfully.");
+	            } else {
+	                // Fallo en la actualización: 500 INTERNAL SERVER ERROR
+	                client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+	                logger.debug("[Client = " + ip + "] Error updating user in the database.");
+	            }
+	        } catch (Exception e) {
+	            logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+	            client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+	            logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+	        }
+	    });
+	}
+
+
+
 
 	// Server control
 	public void start() {
