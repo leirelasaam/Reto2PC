@@ -19,5 +19,6 @@
         <mapping resource="mapping/Cycle.hbm.xml"/>
         <mapping resource="mapping/Enrollment.hbm.xml"/>
         <mapping resource="mapping/Participant.hbm.xml"/>
+        <mapping resource="mapping/Course.hbm.xml"/>
     </session-factory>
 </hibernate-configuration>

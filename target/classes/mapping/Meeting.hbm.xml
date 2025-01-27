@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generated 18 ene 2025, 9:48:26 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 27 ene 2025, 19:50:40 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
     <class catalog="laravel" name="server.elorbase.entities.Meeting" optimistic-lock="none" table="meetings">
         <id name="id" type="java.lang.Long">
@@ -21,11 +21,26 @@
         <property name="status" type="string">
             <column length="9" name="status" not-null="true"/>
         </property>
+        <property name="title" type="string">
+            <column length="50" name="title"/>
+        </property>
+        <property name="room" type="java.lang.Byte">
+            <column name="room"/>
+        </property>
+        <property name="subject" type="string">
+            <column length="100" name="subject"/>
+        </property>
         <property name="createdAt" type="timestamp">
             <column length="19" name="created_at"/>
         </property>
         <property name="updatedAt" type="timestamp">
             <column length="19" name="updated_at"/>
         </property>
+        <set fetch="select" inverse="true" lazy="true" name="participants" table="participants">
+            <key>
+                <column name="meeting_id" not-null="true"/>
+            </key>
+            <one-to-many class="server.elorbase.entities.Participant"/>
+        </set>
     </class>
 </hibernate-mapping>
