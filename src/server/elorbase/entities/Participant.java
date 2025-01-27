@@ -24,7 +24,7 @@ public class Participant implements java.io.Serializable {
 		this.status = status;
 	}
 
-	public Participant(User user, Meeting meetings, String status, Timestamp createdAt, Timestamp updatedAt) {
+	public Participant(User user, Meeting meeting, String status, Timestamp createdAt, Timestamp updatedAt) {
 		this.user = user;
 		this.meeting = meeting;
 		this.status = status;
@@ -44,7 +44,7 @@ public class Participant implements java.io.Serializable {
 		return this.user;
 	}
 
-	public void setUsers(User user) {
+	public void setUser(User user) {
 		this.user = user;
 	}
 

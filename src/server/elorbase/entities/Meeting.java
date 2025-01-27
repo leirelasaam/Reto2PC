@@ -57,11 +57,11 @@ public class Meeting implements java.io.Serializable {
 		this.id = id;
 	}
 
-	public User getUsers() {
+	public User getUser() {
 		return this.user;
 	}
 
-	public void setUsers(User user) {
+	public void setUser(User user) {
 		this.user = user;
 	}
 
