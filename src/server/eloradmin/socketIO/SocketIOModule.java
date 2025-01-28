@@ -320,7 +320,9 @@ public class SocketIOModule {
 	//Comprobar que las funciones funcionan correctamente
 	private DataListener<MessageInput> getUserDataForSignUp() {
 	    return ((client, data, ackSender) -> {
+	    	logger.info("++++++++++++++++++++++++Prueba+++++++++++++++++++++ Client wants to login");
 	        String ip = client.getRemoteAddress().toString();
+	        
 	        logger.info("[Client = " + ip + "] Client requested user data for sign-up");
 
 	        try {
