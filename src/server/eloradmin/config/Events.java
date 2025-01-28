@@ -15,7 +15,9 @@ public enum Events {
 	ON_GET_ALL_USERS_ANSWER ("onGetAllUsersAnswer"),
 	ON_GET_ALL_USERS("onGetAllUsers"), 
 	ON_CREATE_MEETING("onGetAllUsers"),
-	ON_CREATE_MEETING_ANSWER("onGetAllUsersAnswer");
+	ON_CREATE_MEETING_ANSWER("onGetAllUsersAnswer"),
+    ON_STUDENT_DOCUMENTS("onStudentDocuments"),
+    ON_STUDENT_DOCUMENTS_ANSWER("onStudentDocumentsAnswer");
 	
 	public final String value;
 

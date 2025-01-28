@@ -10,4 +10,7 @@
 	<table-filter match-name="roles" match-catalog="laravel"></table-filter>
 	<table-filter match-name="schedules" match-catalog="laravel"></table-filter>
 	<table-filter match-name="users" match-catalog="laravel"></table-filter>
+	<table-filter match-name="courses" match-catalog="laravel"></table-filter>
+	<table-filter match-name="documents" match-catalog="laravel"></table-filter>
+	<table-filter match-name="participants" match-catalog="laravel"></table-filter>
 </hibernate-reverse-engineering>

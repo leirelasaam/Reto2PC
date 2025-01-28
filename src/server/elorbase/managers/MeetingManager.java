@@ -33,12 +33,10 @@ public class MeetingManager {
 			// Guardar la reunión en la base de datos
 			session.persist(meeting);
 
-			Long meetingId = meeting.getId();
-
 			ParticipantsManager pm = new ParticipantsManager(sesion);
 
 			for (Participant participant : participants) {
-				participant.setMeetingId(meetingId);
+				participant.setMeeting(meeting);
 				participant.setStatus("pendiente");
 				pm.createParticipants(participant);
 			}
