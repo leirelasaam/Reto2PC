@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generated 18 ene 2025, 9:48:26 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 27 ene 2025, 19:50:40 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
     <class catalog="laravel" name="server.elorbase.entities.Participant" optimistic-lock="none" table="participants">
         <id name="id" type="java.lang.Long">
             <column name="id"/>
             <generator class="identity"/>
         </id>
+        <many-to-one class="server.elorbase.entities.User" fetch="select" name="user">
+            <column name="user_id" not-null="true"/>
+        </many-to-one>
+        <many-to-one class="server.elorbase.entities.Meeting" fetch="select" name="meeting">
+            <column name="meeting_id" not-null="true"/>
+        </many-to-one>
+        <property name="status" type="string">
+            <column length="9" name="status" not-null="true"/>
+        </property>
         <property name="createdAt" type="timestamp">
             <column length="19" name="created_at"/>
         </property>
         <property name="updatedAt" type="timestamp">
             <column length="19" name="updated_at"/>
-        </property>
-        <property name="meetingId" type="long">
-            <column name="meeting_id" not-null="true"/>
-        </property>
-        <property name="userId" type="long">
-            <column name="user_id" not-null="true"/>
-        </property>
-        <property name="status" type="string">
-            <column length="11" name="status" not-null="true"/>
         </property>
     </class>
 </hibernate-mapping>

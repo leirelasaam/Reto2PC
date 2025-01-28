@@ -48,6 +48,11 @@ public class AESUtil {
 		return encryptedString;
 	}
 	
+	public static String encryptObject(Object obj, SecretKey key) throws Exception {
+        String json = JSONUtil.getSerializedString(obj);
+        return encrypt(json, key);
+    }
+	
 	public static String decrypt(String encryptedData, SecretKey key) throws Exception {
 		String decryptedString = null;
 		Cipher cipher = Cipher.getInstance("AES");
