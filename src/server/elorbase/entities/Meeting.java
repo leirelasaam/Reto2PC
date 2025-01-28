@@ -10,6 +10,7 @@ import java.util.Set;
  */
 public class Meeting implements java.io.Serializable {
 
+	private static final long serialVersionUID = -3278204506631909326L;
 	private Long id;
 	private User user;
 	private byte day;
@@ -21,7 +22,7 @@ public class Meeting implements java.io.Serializable {
 	private String subject;
 	private Timestamp createdAt;
 	private Timestamp updatedAt;
-	private Set participants = new HashSet(0);
+	private Set<Participant> participants = new HashSet<Participant>(0);
 
 	public Meeting() {
 	}
@@ -35,7 +36,7 @@ public class Meeting implements java.io.Serializable {
 	}
 
 	public Meeting(User user, byte day, byte time, byte week, String status, String title, Byte room, String subject,
-			Timestamp createdAt, Timestamp updatedAt, Set participants) {
+			Timestamp createdAt, Timestamp updatedAt, Set<Participant> participants) {
 		this.user = user;
 		this.day = day;
 		this.time = time;
@@ -137,11 +138,11 @@ public class Meeting implements java.io.Serializable {
 		this.updatedAt = updatedAt;
 	}
 
-	public Set getParticipants() {
+	public Set<Participant> getParticipants() {
 		return this.participants;
 	}
 
-	public void setParticipants(Set participants) {
+	public void setParticipants(Set<Participant> participants) {
 		this.participants = participants;
 	}
 

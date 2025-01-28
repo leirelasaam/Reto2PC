@@ -8,7 +8,6 @@ import org.hibernate.query.Query;
 import server.elorbase.entities.User;
 import server.elorbase.utils.BcryptUtil;
 import server.elorbase.utils.DBQueries;
-import server.elorbase.utils.JSONUtil;
 
 public class UsersManager {
 
@@ -22,7 +21,7 @@ public class UsersManager {
 		User u = null;
 
 		Session session = sesion.openSession();
-		String hql = DBQueries.U_BY_EMAIL_OR_PIN;
+		String hql = DBQueries.USER_BY_EMAIL_OR_PIN;
 		Query<User> q = session.createQuery(hql, User.class);
 		q.setParameter("email", login);
 		q.setParameter("pin", login.toUpperCase());
@@ -30,13 +29,12 @@ public class UsersManager {
 
 		// No obtener como lista, ya que solo puede devolver uno o null
 		u = q.uniqueResult();
-
+		
+		/*
 		if (u != null) {
-	        Hibernate.initialize(u.getRole());  
-	        Hibernate.initialize(u.getModules());  
-	        Hibernate.initialize(u.getEnrollments()); 
-	        Hibernate.initialize(u.getMeetings()); 
-	    }
+		    Hibernate.initialize(u.getRole());
+		}
+		*/
 		
 		session.close();
 

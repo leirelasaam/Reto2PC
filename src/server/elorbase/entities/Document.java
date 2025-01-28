@@ -8,6 +8,7 @@ import java.sql.Timestamp;
  */
 public class Document implements java.io.Serializable {
 
+	private static final long serialVersionUID = 8203150317431826837L;
 	private Long id;
 	private Module module;
 	private String name;

@@ -10,6 +10,7 @@ import java.util.Set;
  */
 public class Module implements java.io.Serializable {
 
+	private static final long serialVersionUID = -2981656318664124550L;
 	private Long id;
 	private Cycle cycle;
 	private User user;
@@ -19,8 +20,8 @@ public class Module implements java.io.Serializable {
 	private byte course;
 	private Timestamp createdAt;
 	private Timestamp updatedAt;
-	private Set enrollments = new HashSet(0);
-	private Set schedules = new HashSet(0);
+	private Set<Enrollment> enrollments = new HashSet<Enrollment>(0);
+	private Set<Schedule> schedules = new HashSet<Schedule>(0);
 
 	public Module() {
 	}
@@ -34,7 +35,7 @@ public class Module implements java.io.Serializable {
 	}
 
 	public Module(Cycle cycle, User user, String code, String name, int hours, byte course, Timestamp createdAt,
-			Timestamp updatedAt, Set enrollments, Set schedules) {
+			Timestamp updatedAt, Set<Enrollment> enrollments, Set<Schedule> schedules) {
 		this.cycle = cycle;
 		this.user = user;
 		this.code = code;
@@ -119,19 +120,19 @@ public class Module implements java.io.Serializable {
 		this.updatedAt = updatedAt;
 	}
 
-	public Set getEnrollments() {
+	public Set<Enrollment> getEnrollments() {
 		return this.enrollments;
 	}
 
-	public void setEnrollments(Set enrollments) {
+	public void setEnrollments(Set<Enrollment> enrollments) {
 		this.enrollments = enrollments;
 	}
 
-	public Set getSchedules() {
+	public Set<Schedule> getSchedules() {
 		return this.schedules;
 	}
 
-	public void setSchedules(Set schedules) {
+	public void setSchedules(Set<Schedule> schedules) {
 		this.schedules = schedules;
 	}
 

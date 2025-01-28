@@ -9,6 +9,7 @@ import java.sql.Timestamp;
  */
 public class Course implements java.io.Serializable {
 
+	private static final long serialVersionUID = -8204058024530910569L;
 	private Long id;
 	private String name;
 	private Date date;

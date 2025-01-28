@@ -26,7 +26,7 @@ public class SchedulesManager {
 		ArrayList<Schedule> schedules = null;
 
 		Session session = sesion.openSession();
-		String hql = DBQueries.S_BY_TEACHER;
+		String hql = DBQueries.SCHEDULE_BY_TEACHER;
 		Query<Schedule> q = session.createQuery(hql, Schedule.class);
 		q.setParameter("id", id);
 

@@ -18,13 +18,11 @@
         <property name="updatedAt" type="timestamp">
             <column length="19" name="updated_at"/>
         </property>
-        <!--  
         <set fetch="select" inverse="true" lazy="true" name="users" table="users">
             <key>
                 <column name="role_id"/>
             </key>
             <one-to-many class="server.elorbase.entities.User"/>
         </set>
-        -->
     </class>
 </hibernate-mapping>

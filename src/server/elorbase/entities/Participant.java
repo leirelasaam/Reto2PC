@@ -8,6 +8,7 @@ import java.sql.Timestamp;
  */
 public class Participant implements java.io.Serializable {
 
+	private static final long serialVersionUID = -7801031623015730999L;
 	private Long id;
 	private User user;
 	private Meeting meeting;

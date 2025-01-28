@@ -244,10 +244,15 @@ public class User implements java.io.Serializable {
 		this.meetings = meetings;
 	}
 
-	public String toStringEntity() {
-		return "User [id=" + id + ", name=" + name + ", email=" + email + ", password=" + password + ", lastname="
-				+ lastname + ", pin=" + pin + ", address=" + address + ", phone1=" + phone1 + ", phone2=" + phone2
-				+ ", photo=" + Arrays.toString(photo) + ", intensive=" + intensive + ", registered=" + registered + "]";
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", name=" + name + ", email=" + email + ", emailVerifiedAt=" + emailVerifiedAt
+				+ ", password=" + password + ", rememberToken=" + rememberToken + ", createdAt=" + createdAt
+				+ ", updatedAt=" + updatedAt + ", deletedAt=" + deletedAt + ", lastname=" + lastname + ", pin=" + pin
+				+ ", address=" + address + ", phone1=" + phone1 + ", phone2=" + phone2 + ", photo="
+				+ Arrays.toString(photo) + ", intensive=" + intensive + ", registered=" + registered + "]";
 	}
+	
+	
 
 }
