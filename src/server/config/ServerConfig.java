@@ -16,4 +16,6 @@ public class ServerConfig {
 	public static String SMTP_PASS = "mmde jyrc unnu eifp"; 
 	// Ecriptación
 	public static String AES_KEY = "src/server/config/aes.key";
+	
+	public static String MODULE_FILES = "src/server/elordocs/";
 }

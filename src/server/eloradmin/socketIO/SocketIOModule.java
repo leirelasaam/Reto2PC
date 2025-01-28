@@ -22,6 +22,7 @@ import server.eloradmin.model.MessageOutput;
 import server.elorbase.managers.DocumentsManager;
 import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
+import server.elorbase.entities.Document;
 import server.elorbase.entities.TeacherSchedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.AESUtil;
@@ -120,7 +121,6 @@ public class SocketIOModule {
 					if (BcryptUtil.verifyPassword(password, user.getPassword())) {
 						// Encriptar el objeto usuario
 	                    String answerMessage = JSONUtil.getSerializedString(user);
-	                    logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
 	                    // Está registrado y su rol es profe/estudiante
 						if (user.isRegistered() && (user.getRole().getRole().equals("profesor")
 								|| user.getRole().getRole().equals("estudiante"))) {
@@ -240,20 +240,12 @@ public class SocketIOModule {
 				if (selectedWeek < 1 || selectedWeek > 39) {
 					msgOut = DefaultMessages.BAD_REQUEST;
 				} else {
-					JsonObject messageObject = new JsonObject();
 					SchedulesManager sm = new SchedulesManager(sesion);
 					ArrayList<TeacherSchedule> schedules = sm.getTeacherWeeklySchedule(teacherId, selectedWeek);
 					
 					if (schedules != null) {
-						JsonArray schedulesArray = new JsonArray();
-						for (TeacherSchedule s : schedules) {
-							JsonObject scheduleJson = gson.toJsonTree(s).getAsJsonObject();
-							schedulesArray.add(scheduleJson);
-						}
-						
-						messageObject.add("schedules", schedulesArray);
-						String messageContent = gson.toJson(messageObject);
-						msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
+						String answerMessage = JSONUtil.getSerializedArrayString(schedules, "schedules");
+						msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
 					} else {
 						msgOut = DefaultMessages.NOT_FOUND;
 					}
@@ -291,10 +283,11 @@ public class SocketIOModule {
 				MessageOutput msgOut = null;
 				
 				DocumentsManager dm = new DocumentsManager(sesion);
-				ArrayList<Object> documents = dm.getDocumentsByUserId(studentId);
+				ArrayList<Document> documents = dm.getDocumentsByUserId(studentId);
 				
 				if (documents != null) {
-					msgOut = DefaultMessages.OK;
+					String answerMessage = JSONUtil.getSerializedArrayString(documents, "documents");
+					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
 				} else {
 					msgOut = DefaultMessages.NOT_FOUND;
 				}

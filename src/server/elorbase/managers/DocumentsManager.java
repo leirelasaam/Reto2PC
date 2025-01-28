@@ -1,5 +1,7 @@
 package server.elorbase.managers;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,8 +9,9 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 
+import server.config.ServerConfig;
+import server.elorbase.entities.Document;
 import server.elorbase.utils.DBQueries;
-
 
 public class DocumentsManager {
 
@@ -17,27 +20,37 @@ public class DocumentsManager {
 	public DocumentsManager(SessionFactory sesion) {
 		this.sesion = sesion;
 	}
-	
-	public ArrayList<Object> getDocumentsByUserId(int id) {
-		ArrayList<Object> documents = null;
 
+	public ArrayList<Document> getDocumentsByUserId(int id) {
+		ArrayList<Document> documents = null;
 		Session session = sesion.openSession();
-		String hql = DBQueries.DOCUMENTS_BY_STUDENT;
-		Query<Object> q = session.createQuery(hql, Object.class);
-		q.setParameter("id", id);
-		
-		List<?> filas = q.list();
 
-		if (filas.size() > 0) {
-			for (Object fila : filas) {
-				fila.toString();
-				if (documents == null)
-					documents = new ArrayList<Object>();
-				documents.add(fila);
+		try {
+			String hql = DBQueries.DOCUMENTS_BY_STUDENT;
+			Query<Document> q = session.createQuery(hql, Document.class);
+			q.setParameter("id", id);
+
+			List<Document> filas = q.list();
+
+			if (filas.size() > 0) {
+				for (Document fila : filas) {
+					if (documents == null)
+						documents = new ArrayList<Document>();
+					String path = ServerConfig.MODULE_FILES + fila.getRoute() + "." + fila.getExtension();
+					File file = new File(path);
+					byte[] fileContent = Files.readAllBytes(file.toPath());
+
+					fila.setFile(fileContent);
+
+					documents.add(fila);
+				}
 			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			session.close();
 		}
-		
-		session.close();
 
 		return documents;
 	}

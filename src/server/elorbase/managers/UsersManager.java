@@ -30,12 +30,6 @@ public class UsersManager {
 		// No obtener como lista, ya que solo puede devolver uno o null
 		u = q.uniqueResult();
 		
-		/*
-		if (u != null) {
-		    Hibernate.initialize(u.getRole());
-		}
-		*/
-		
 		session.close();
 
 		return u;
