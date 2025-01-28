@@ -8,6 +8,10 @@ import java.sql.Timestamp;
  */
 public class Meeting implements java.io.Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Long id;
 	private User user;
 	private byte day;
