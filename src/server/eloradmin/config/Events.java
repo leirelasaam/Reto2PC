@@ -13,7 +13,9 @@ public enum Events {
     ON_TEACHER_SCHEDULE("onTeacherSchedule"),
     ON_TEACHER_SCHEDULE_ANSWER("onTeacherScheduleAnswer"),
     ON_STUDENT_DOCUMENTS("onStudentDocuments"),
-    ON_STUDENT_DOCUMENTS_ANSWER("onStudentDocumentsAnswer");
+    ON_STUDENT_DOCUMENTS_ANSWER("onStudentDocumentsAnswer"),
+    ON_ALL_MEETINGS("onAllMeetings"),
+    ON_ALL_MEETINGS_ANSWER("onAllMeetingsAnswer");
 	
 	public final String value;
 

@@ -7,7 +7,7 @@ public class ServerConfig {
 	 * Casa: 192.168.1.139
 	 * Clase: 10.5.104.31
 	 */
-	public static final String HOST_NAME = "192.168.1.139"; 
+	public static final String HOST_NAME = "10.5.104.31"; 
 	public static final int PORT = 3000;
 	// SMTP
 	public static String SMTP_HOST = "smtp.gmail.com";

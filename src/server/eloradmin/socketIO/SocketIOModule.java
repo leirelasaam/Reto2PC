@@ -20,9 +20,11 @@ import server.eloradmin.model.DefaultMessages;
 import server.eloradmin.model.MessageInput;
 import server.eloradmin.model.MessageOutput;
 import server.elorbase.managers.DocumentsManager;
+import server.elorbase.managers.MeetingsManager;
 import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
 import server.elorbase.entities.Document;
+import server.elorbase.entities.Meeting;
 import server.elorbase.entities.TeacherSchedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.AESUtil;
@@ -32,7 +34,6 @@ import server.elorbase.utils.JSONUtil;
 import server.elormail.EmailSender;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 
 /**
  * Server control main configuration class
@@ -62,6 +63,7 @@ public class SocketIOModule {
 		server.addEventListener(Events.ON_RESET_PASS_EMAIL.value, MessageInput.class, this.sendResetPassEmail());
 		server.addEventListener(Events.ON_TEACHER_SCHEDULE.value, MessageInput.class, this.getTeacherSchedule());
 		server.addEventListener(Events.ON_STUDENT_DOCUMENTS.value, MessageInput.class, this.getStudentDocuments());
+		server.addEventListener(Events.ON_ALL_MEETINGS.value, MessageInput.class, this.getTeacherMeetings());
 	}
 
 	// Default events
@@ -299,6 +301,46 @@ public class SocketIOModule {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
 				client.sendEvent(Events.ON_STUDENT_DOCUMENTS_ANSWER.value, encryptedMsg);
+			}
+		});
+	}
+	
+	private DataListener<MessageInput> getTeacherMeetings() {
+		return ((client, data, ackSender) -> {
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Client wants to get meetings");
+			String encryptedMsg = null;
+			try {
+				String clientMsg = data.getMessage();
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
+
+				/*
+				 * Ejemplo de lo que nos llega: { "id": "70" }
+				 */
+				Gson gson = new Gson();
+				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
+				int teacherId = jsonObject.get("message").getAsInt();
+				
+				MessageOutput msgOut = null;
+				
+				MeetingsManager mm = new MeetingsManager(sesion);
+				ArrayList<Meeting> meetings = mm.getMeetingsByUser(teacherId);
+				
+				if (meetings != null) {
+					String answerMessage = JSONUtil.getSerializedArrayString(meetings, "meetings");
+					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
+				} else {
+					msgOut = DefaultMessages.NOT_FOUND;
+				}
+				
+				encryptedMsg = AESUtil.encryptObject(msgOut, key);
+				client.sendEvent(Events.ON_ALL_MEETINGS_ANSWER.value, encryptedMsg);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
+			} catch (Exception e) {
+				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
+				client.sendEvent(Events.ON_ALL_MEETINGS_ANSWER.value, encryptedMsg);
 			}
 		});
 	}

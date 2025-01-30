@@ -1,6 +1,5 @@
 package server.elorbase.managers;
 
-import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
