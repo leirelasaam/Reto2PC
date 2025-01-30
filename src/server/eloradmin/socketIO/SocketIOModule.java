@@ -118,7 +118,7 @@ public class SocketIOModule {
 				UsersManager um = new UsersManager(sesion);
 				User user = um.getByEmailOrPin(login.trim());
 				
-
+				
 				MessageOutput msgOut = null;
 				// No se ha encontrado usuario
 				if (user == null) {
@@ -325,8 +325,10 @@ public class SocketIOModule {
 	        
 	        logger.info("[Client = " + ip + "] Client requested user data for sign-up");
 
+	        //String encryptedMsg = null;
 	        try {
 	            String clientMsg = data.getMessage();
+	            //String decryptedMsg = AESUtil.decrypt(clientMsg, key);
 	            logger.debug("[Client = " + ip + "] Server received: " + clientMsg);
 
 	            /*
