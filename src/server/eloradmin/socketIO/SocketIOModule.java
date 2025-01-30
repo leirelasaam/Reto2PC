@@ -19,10 +19,11 @@ import server.eloradmin.config.Events;
 import server.eloradmin.model.DefaultMessages;
 import server.eloradmin.model.MessageInput;
 import server.eloradmin.model.MessageOutput;
+import server.elorbase.managers.DocumentsManager;
 import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
-import server.elorbase.dtos.ScheduleDTO;
 import server.elorbase.entities.Schedule;
+import server.elorbase.entities.Document;
 import server.elorbase.entities.TeacherSchedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.AESUtil;
@@ -44,6 +45,7 @@ public class SocketIOModule {
 	private SessionFactory sesion = null;
 	private static final Logger logger = Logger.getLogger(SocketIOModule.class);
 	private SecretKey key = null;
+	private boolean isServerRunning = false;
 
 	public SocketIOModule(SocketIOServer server, SecretKey key) {
 		super();
@@ -61,6 +63,8 @@ public class SocketIOModule {
 		server.addEventListener(Events.ON_RESET_PASS_EMAIL.value, MessageInput.class, this.sendResetPassEmail());
 		server.addEventListener(Events.ON_TEACHER_SCHEDULE.value, MessageInput.class, this.getTeacherSchedule());
 		server.addEventListener(Events.ON_STUDENT_SCHEDULE.value, MessageInput.class, this.getStudentSchedule());
+		server.addEventListener(Events.ON_STUDENT_DOCUMENTS.value, MessageInput.class, this.getStudentDocuments());
+
 	}
 
 	// Default events
@@ -120,7 +124,6 @@ public class SocketIOModule {
 					if (BcryptUtil.verifyPassword(password, user.getPassword())) {
 						// Encriptar el objeto usuario
 	                    String answerMessage = JSONUtil.getSerializedString(user);
-	                    logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
 	                    // Está registrado y su rol es profe/estudiante
 						if (user.isRegistered() && (user.getRole().getRole().equals("profesor")
 								|| user.getRole().getRole().equals("estudiante"))) {
@@ -221,6 +224,7 @@ public class SocketIOModule {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
 			logger.info("[Client = " + ip + "] Client wants to get the schedule");
+			String encryptedMsg = null;
 			try {
 				String clientMsg = data.getMessage();
 				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
@@ -233,85 +237,88 @@ public class SocketIOModule {
 				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
 				int teacherId = jsonObject.get("id").getAsInt();
 				int selectedWeek = jsonObject.get("week").getAsInt();
-				JsonObject messageObject = new JsonObject();
 				
-				SchedulesManager sm = new SchedulesManager(sesion);
-				ArrayList<TeacherSchedule> schedules = sm.getTeacherWeeklySchedule(teacherId, selectedWeek);
 				
 				MessageOutput msgOut = null;
-				if (schedules != null) {
-					JsonArray schedulesArray = new JsonArray();
-					for (TeacherSchedule s : schedules) {
-						JsonObject scheduleJson = gson.toJsonTree(s).getAsJsonObject();
-						schedulesArray.add(scheduleJson);
-					}
+				if (selectedWeek < 1 || selectedWeek > 39) {
+					msgOut = DefaultMessages.BAD_REQUEST;
+				} else {
+					SchedulesManager sm = new SchedulesManager(sesion);
+					ArrayList<TeacherSchedule> schedules = sm.getTeacherWeeklySchedule(teacherId, selectedWeek);
 					
-					messageObject.add("schedules", schedulesArray);
-					String messageContent = gson.toJson(messageObject);
-					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
+					if (schedules != null) {
+						String answerMessage = JSONUtil.getSerializedArrayString(schedules, "schedules");
+						msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
+					} else {
+						msgOut = DefaultMessages.NOT_FOUND;
+					}
+				}
+				
+				encryptedMsg = AESUtil.encryptObject(msgOut, key);
+				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, encryptedMsg);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
+			} catch (Exception e) {
+				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
+				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, encryptedMsg);
+			}
+		});
+	}
+	
+	private DataListener<MessageInput> getStudentDocuments() {
+		return ((client, data, ackSender) -> {
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Client wants to get documents");
+			String encryptedMsg = null;
+			try {
+				String clientMsg = data.getMessage();
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
+
+				/*
+				 * Ejemplo de lo que nos llega: { "id": "70" }
+				 */
+				Gson gson = new Gson();
+				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
+				int studentId = jsonObject.get("message").getAsInt();
+				
+				
+				MessageOutput msgOut = null;
+				
+				DocumentsManager dm = new DocumentsManager(sesion);
+				ArrayList<Document> documents = dm.getDocumentsByUserId(studentId);
+				
+				if (documents != null) {
+					String answerMessage = JSONUtil.getSerializedArrayString(documents, "documents");
+					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
 				} else {
 					msgOut = DefaultMessages.NOT_FOUND;
 				}
 				
-				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, msgOut);
+				encryptedMsg = AESUtil.encryptObject(msgOut, key);
+				client.sendEvent(Events.ON_STUDENT_DOCUMENTS_ANSWER.value, encryptedMsg);
 				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
 			} catch (Exception e) {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
-				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
+				client.sendEvent(Events.ON_STUDENT_DOCUMENTS_ANSWER.value, encryptedMsg);
 			}
 		});
 	}
 	
 	private DataListener<MessageInput> getStudentSchedule() {
-		return ((client, data, ackSender) -> {
-			String ip = client.getRemoteAddress().toString();
-			logger.info("[Client = " + ip + "] Client wants to get the schedule");
-			try {
-				String clientMsg = data.getMessage();
-				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
-
-				/*
-				 * Ejemplo de lo que nos llega: { "message": "70"}
-				 */
-				Gson gson = new Gson();
-				// Extraer el JSON
-				JsonObject jsonObject = gson.fromJson(clientMsg, JsonObject.class);
-				// Extraer el message
-				String id = jsonObject.get("message").getAsString();
-				int id_int = Integer.parseInt(id);
-
-				JsonObject messageObject = new JsonObject();
-				// Buscar schedules por user_id
-				SchedulesManager sm = new SchedulesManager(sesion);
-				ArrayList<Schedule> schedules = sm.getByUserId(id_int);
-				if (schedules != null) {
-					JsonArray schedulesArray = new JsonArray();
-					for (Schedule s : schedules) {
-						ScheduleDTO sDTO = new ScheduleDTO(s);
-						JsonObject scheduleJson = gson.toJsonTree(sDTO).getAsJsonObject();
-						schedulesArray.add(scheduleJson);
-					}
-					messageObject.add("schedules", schedulesArray);
-					String messageContent = gson.toJson(messageObject);
-					MessageOutput messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
-					client.sendEvent(Events.ON_STUDENT_SCHEDULE_ANSWER.value, messageOutput);
-					logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
-				} else {
-					client.sendEvent(Events.ON_STUDENT_SCHEDULE_ANSWER.value, DefaultMessages.NOT_FOUND);
-					logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
-				}
-			} catch (Exception e) {
-				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
-				client.sendEvent(Events.ON_STUDENT_SCHEDULE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
-			}
-		});
+		return null ;
 	}
 
 	// Server control
 	public void start() {
-		server.start();
-		logger.info("Server started");
+		if (!isServerRunning) {
+			isServerRunning = true;
+			server.start();
+			logger.info("Server started");
+		} else {
+			logger.warn("Server already running");
+		}
 	}
 
 	public void stop() {

@@ -26,7 +26,7 @@ public class SchedulesManager {
 		ArrayList<Schedule> schedules = null;
 
 		Session session = sesion.openSession();
-		String hql = DBQueries.S_BY_TEACHER;
+		String hql = DBQueries.SCHEDULE_BY_TEACHER;
 		Query<Schedule> q = session.createQuery(hql, Schedule.class);
 		q.setParameter("id", id);
 
@@ -62,7 +62,7 @@ public class SchedulesManager {
 			query.setParameter("selected_week", selectedWeek);
 
 			List<TeacherSchedule> filas = query.getResultList();
-			if (filas.size() > 0) {
+			if (filas != null && filas.size() > 0) {
 				for (TeacherSchedule fila : filas) {
 					if (schedules == null)
 						schedules = new ArrayList<TeacherSchedule>();
