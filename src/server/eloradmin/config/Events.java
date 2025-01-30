@@ -14,10 +14,12 @@ public enum Events {
     ON_TEACHER_SCHEDULE_ANSWER("onTeacherScheduleAnswer"),
 	ON_GET_ALL_USERS_ANSWER ("onGetAllUsersAnswer"),
 	ON_GET_ALL_USERS("onGetAllUsers"), 
-	ON_CREATE_MEETING("onGetAllUsers"),
-	ON_CREATE_MEETING_ANSWER("onGetAllUsersAnswer"),
+	ON_CREATE_MEETING("onCreateMeeting"),
+	ON_CREATE_MEETING_ANSWER("onCreateMeetingAnswer"),
     ON_STUDENT_DOCUMENTS("onStudentDocuments"),
-    ON_STUDENT_DOCUMENTS_ANSWER("onStudentDocumentsAnswer");
+    ON_STUDENT_DOCUMENTS_ANSWER("onStudentDocumentsAnswer"),
+    ON_UPDATE_PASS("onUpdatePass"),
+    ON_UPDATE_PASS_ANSWER("onUpdatePassAnswer");
 	
 	public final String value;
 

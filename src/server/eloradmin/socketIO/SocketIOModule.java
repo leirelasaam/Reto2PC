@@ -65,6 +65,7 @@ public class SocketIOModule {
 		server.addEventListener(Events.ON_TEACHER_SCHEDULE.value, MessageInput.class, this.getTeacherSchedule());
 		server.addEventListener(Events.ON_CREATE_MEETING.value, MessageInput.class, this.createMeeting());
 		server.addEventListener(Events.ON_STUDENT_DOCUMENTS.value, MessageInput.class, this.getStudentDocuments());
+		server.addEventListener(Events.ON_UPDATE_PASS.value, MessageInput.class, this.updatePass());
 	}
 
 	// Default events
@@ -206,7 +207,7 @@ public class SocketIOModule {
 					es.sendEmail(user.getEmail(), "ElorClass - Nueva contraseña", "Contraseña nueva: " + password);
 					msgOut = DefaultMessages.OK;
 				} else {
-					msgOut = DefaultMessages.NOT_FOUND;
+					msgOut = DefaultMessages.UNAUTHORIZED;
 				}
 
 				encryptedMsg = AESUtil.encryptObject(msgOut, key);
@@ -216,6 +217,57 @@ public class SocketIOModule {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
 				client.sendEvent(Events.ON_RESET_PASS_EMAIL_ANSWER.value, encryptedMsg);
+			}
+		});
+	}
+
+	private DataListener<MessageInput> updatePass() {
+		return ((client, data, ackSender) -> {
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Client wants to reset password");
+
+			String encryptedMsg = null;
+			try {
+				String clientMsg = data.getMessage();
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
+
+				/*
+				 * Ejemplo de lo que nos llega: { "message": "ejemplo@usuario.com"}
+				 */
+				Gson gson = new Gson();
+				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
+				String user_email = jsonObject.get("email").getAsString();
+				String old_password = jsonObject.get("oldPassword").getAsString();
+				String new_password = jsonObject.get("newPassword").getAsString();
+
+				UsersManager um = new UsersManager(sesion);
+				User user = um.getByEmailOrPin(user_email);
+
+				MessageOutput msgOut = null;
+				if (user != null) {
+					if (BcryptUtil.verifyPassword(old_password, user.getPassword())) {
+						if (BcryptUtil.verifyPassword(old_password, new_password)) {
+							um.updatePasswordByUser(user, new_password);
+							msgOut = DefaultMessages.OK;
+						} else {
+							msgOut = DefaultMessages.CONFLICT;
+						}
+						
+					}else {
+						msgOut = DefaultMessages.UNAUTHORIZED;
+					}
+				} else {
+					msgOut = DefaultMessages.NOT_FOUND;
+				}
+
+				encryptedMsg = AESUtil.encryptObject(msgOut, key);
+				client.sendEvent(Events.ON_UPDATE_PASS_ANSWER.value, encryptedMsg);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
+			} catch (Exception e) {
+				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
+				client.sendEvent(Events.ON_UPDATE_PASS_ANSWER.value, encryptedMsg);
 			}
 		});
 	}
@@ -237,8 +289,7 @@ public class SocketIOModule {
 				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
 				int teacherId = jsonObject.get("id").getAsInt();
 				int selectedWeek = jsonObject.get("week").getAsInt();
-				
-				
+
 				MessageOutput msgOut = null;
 				if (selectedWeek < 1 || selectedWeek > 39) {
 					msgOut = DefaultMessages.BAD_REQUEST;
@@ -246,14 +297,14 @@ public class SocketIOModule {
 					JsonObject messageObject = new JsonObject();
 					SchedulesManager sm = new SchedulesManager(sesion);
 					ArrayList<TeacherSchedule> schedules = sm.getTeacherWeeklySchedule(teacherId, selectedWeek);
-					
+
 					if (schedules != null) {
 						JsonArray schedulesArray = new JsonArray();
 						for (TeacherSchedule s : schedules) {
 							JsonObject scheduleJson = gson.toJsonTree(s).getAsJsonObject();
 							schedulesArray.add(scheduleJson);
 						}
-						
+
 						messageObject.add("schedules", schedulesArray);
 						String messageContent = gson.toJson(messageObject);
 						msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
@@ -261,7 +312,7 @@ public class SocketIOModule {
 						msgOut = DefaultMessages.NOT_FOUND;
 					}
 				}
-				
+
 				encryptedMsg = AESUtil.encryptObject(msgOut, key);
 				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, encryptedMsg);
 				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
@@ -272,7 +323,7 @@ public class SocketIOModule {
 			}
 		});
 	}
-	
+
 	private DataListener<MessageInput> getStudentDocuments() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -290,8 +341,7 @@ public class SocketIOModule {
 				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
 				int teacherId = jsonObject.get("id").getAsInt();
 				int selectedWeek = jsonObject.get("week").getAsInt();
-				
-				
+
 				MessageOutput msgOut = null;
 				if (selectedWeek < 1 || selectedWeek > 39) {
 					msgOut = DefaultMessages.BAD_REQUEST;
@@ -299,14 +349,14 @@ public class SocketIOModule {
 					JsonObject messageObject = new JsonObject();
 					SchedulesManager sm = new SchedulesManager(sesion);
 					ArrayList<TeacherSchedule> schedules = sm.getTeacherWeeklySchedule(teacherId, selectedWeek);
-					
+
 					if (schedules != null) {
 						JsonArray schedulesArray = new JsonArray();
 						for (TeacherSchedule s : schedules) {
 							JsonObject scheduleJson = gson.toJsonTree(s).getAsJsonObject();
 							schedulesArray.add(scheduleJson);
 						}
-						
+
 						messageObject.add("schedules", schedulesArray);
 						String messageContent = gson.toJson(messageObject);
 						msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, messageContent);
@@ -314,7 +364,7 @@ public class SocketIOModule {
 						msgOut = DefaultMessages.NOT_FOUND;
 					}
 				}
-				
+
 				encryptedMsg = AESUtil.encryptObject(msgOut, key);
 				client.sendEvent(Events.ON_TEACHER_SCHEDULE_ANSWER.value, encryptedMsg);
 				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
@@ -368,11 +418,11 @@ public class SocketIOModule {
 
 				// Si no se encuentran usuarios con el rol especificado
 				if (users == null || users.isEmpty()) {
-					msgOut = DefaultMessages.NOT_FOUND;
+					msgOut = new MessageOutput(HttpURLConnection.HTTP_NO_CONTENT, null);
 				} else {
 					// Serializar la lista de usuarios y enviarla como respuesta
 					String usersJson = JSONUtil.getSerializedString(users);
-					logger.debug("[Client = " + ip + "] Users found: " + usersJson);
+					// logger.debug("[Client = " + ip + "] Users found: " + usersJson);
 
 					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, usersJson);
 				}
@@ -403,8 +453,7 @@ public class SocketIOModule {
 
 				/*
 				 * Example input JSON: { "title": "Team Meeting", "description":
-				 * "Discuss project milestones", "day": , "hour": "1",
-				 * "organizerId": 1 }
+				 * "Discuss project milestones", "day": , "hour": "1", "organizerId": 1 }
 				 */
 
 				// Parse the JSON input
@@ -413,7 +462,7 @@ public class SocketIOModule {
 				Meeting meetingAInsertar = new Meeting();
 				meetingAInsertar.setDay(jsonObject.get("date").getAsByte());
 				meetingAInsertar.setTime(jsonObject.get("time").getAsByte());
-				//int organizerId = jsonObject.get("organizerId").getAsInt();
+				// int organizerId = jsonObject.get("organizerId").getAsInt();
 
 				// Create a new meeting using MeetingManager
 				MeetingManager meetingManager = new MeetingManager(sesion);

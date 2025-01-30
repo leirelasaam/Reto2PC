@@ -10,7 +10,7 @@ public class DBQueries {
 	
 	// JOIN FETCH se utiliza para que forzar a que se carguen los datos de la otra entidad
 	public static final String U_BY_EMAIL = "FROM " + U + " as U JOIN FETCH U.roles WHERE U.email = :email";
-	public static final String U_BY_ROLE = "FROM " + U + " as U WHERE U.role.id = :roleId";
+	public static final String U_BY_ROLE = "FROM " + U + " as U JOIN FETCH U.role WHERE U.role.id = :roleId";
 
 	//public static final String D_BY_TEACHER = "FROM " + S + " as S WHERE S.module.user.id = :id ORDER BY S.day DESC, S.hour DESC";
 }

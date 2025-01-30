@@ -2,8 +2,8 @@ package server.config;
 
 public class ServerConfig {
 	// Server
-	public static final String HOST_NAME = "localhost";
-	public static final int PORT = 3000;
+	public static final String HOST_NAME = "192.168.56.1";
+	public static final int PORT = 3001;
 	// SMTP
 	public static String SMTP_HOST = "smtp.gmail.com";
 	public static String SMTP_PORT = "587";
