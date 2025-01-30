@@ -274,10 +274,14 @@ public class SocketIOModule {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
 			logger.info("[Client = " + ip + "] Client wants to sign up");
+			
+			
+			String encryptedMsg = null;
 			try {
 				String clientMsg = data.getMessage();
-				logger.debug("[Client = " + ip + "] Server received: " + data.getMessage());
-
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				
+				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
 				/*
 				 * Ejemplo de lo que nos llega: { "message": "70"}
 				 */
@@ -318,18 +322,21 @@ public class SocketIOModule {
 	}
 	
 	//Comprobar que las funciones funcionan correctamente
-	private DataListener<MessageInput> getUserDataForSignUp() {
+	private DataListener<MessageInput> getUserDataForSignUp() { 
 	    return ((client, data, ackSender) -> {
+	    	logger.info("[ON_REGISTER_INFO] Evento recibido");
 	    	logger.info("++++++++++++++++++++++++Prueba+++++++++++++++++++++ Client wants to login");
 	        String ip = client.getRemoteAddress().toString();
 	        
 	        logger.info("[Client = " + ip + "] Client requested user data for sign-up");
 
-	        //String encryptedMsg = null;
-	        try {
-	            String clientMsg = data.getMessage();
-	            //String decryptedMsg = AESUtil.decrypt(clientMsg, key);
-	            logger.debug("[Client = " + ip + "] Server received: " + clientMsg);
+	        System.out.println("getUserDataForSingUp");
+	        
+	        String encryptedMsg = null;
+			try {
+				String clientMsg = data.getMessage();
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
 
 	            /*
 	             * Ejemplo de lo que nos llega: { "message": { "id": "1234" } }
