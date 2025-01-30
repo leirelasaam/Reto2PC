@@ -279,19 +279,15 @@ public class SocketIOModule {
 			try {
 				String clientMsg = data.getMessage();
 				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
-				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
-
+				
 				/*
-				 * Ejemplo de lo que nos llega: { "login": "user@example.com", "password": "1234" }
+				 * Ejemplo de lo que nos llega: { "login": "user@example.com"}
 				 */
 				
 				// Extraer login y password
 				Gson gson = new Gson();
 				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
-				String login = jsonObject.get("login").getAsString();
-				
-	            // Extraer el login del usuario
-				//String login = decryptedMsg.trim().replaceAll("\\p{C}", "");            
+				String login = jsonObject.get("login").getAsString();        
 	            
 	            logger.debug("[Client = " + ip + "] Not encripted user Lucian: " + login);
 	            
@@ -363,6 +359,7 @@ public class SocketIOModule {
 	            logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 	            client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
 	            logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+	            
 	        }
 	    });
 	}
