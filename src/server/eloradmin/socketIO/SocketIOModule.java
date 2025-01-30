@@ -19,9 +19,11 @@ import server.eloradmin.config.Events;
 import server.eloradmin.model.DefaultMessages;
 import server.eloradmin.model.MessageInput;
 import server.eloradmin.model.MessageOutput;
+import server.elorbase.managers.CoursesManager;
 import server.elorbase.managers.DocumentsManager;
 import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
+import server.elorbase.entities.Course;
 import server.elorbase.entities.Document;
 import server.elorbase.entities.TeacherSchedule;
 import server.elorbase.entities.User;
@@ -30,10 +32,7 @@ import server.elorbase.utils.BcryptUtil;
 import server.elorbase.utils.HibernateUtil;
 import server.elorbase.utils.JSONUtil;
 import server.elormail.EmailSender;
-
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-
 /**
  * Server control main configuration class
  */
@@ -61,7 +60,9 @@ public class SocketIOModule {
 		server.addEventListener(Events.ON_LOGOUT.value, MessageInput.class, this.logout());
 		server.addEventListener(Events.ON_RESET_PASS_EMAIL.value, MessageInput.class, this.sendResetPassEmail());
 		server.addEventListener(Events.ON_TEACHER_SCHEDULE.value, MessageInput.class, this.getTeacherSchedule());
+		//server.addEventListener(Events.ON_STUDENT_SCHEDULE.value, MessageInput.class, this.getStudentSchedule());
 		server.addEventListener(Events.ON_STUDENT_DOCUMENTS.value, MessageInput.class, this.getStudentDocuments());
+		server.addEventListener(Events.ON_STUDENT_COURSES.value, MessageInput.class, this.getAllCourses());
 	}
 
 	// Default events
@@ -299,6 +300,36 @@ public class SocketIOModule {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
 				client.sendEvent(Events.ON_STUDENT_DOCUMENTS_ANSWER.value, encryptedMsg);
+			}
+		});
+	}
+	
+	private DataListener<MessageInput> getAllCourses() {
+		return ((client, data, ackSender) -> {
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Client wants to get courses");
+			String encryptedMsg = null;
+			try {
+				MessageOutput msgOut = null;
+				
+				CoursesManager cm = new CoursesManager(sesion);
+				ArrayList<Course> courses = cm.getAllCourses();
+				
+				if (courses != null) {
+					String answerMessage = JSONUtil.getSerializedArrayString(courses, "courses");
+					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
+				} else {
+					msgOut = DefaultMessages.NOT_FOUND;
+				}
+				
+				encryptedMsg = AESUtil.encryptObject(msgOut, key);
+				client.sendEvent(Events.ON_STUDENT_COURSES_ANSWER.value, encryptedMsg);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
+			} catch (Exception e) {
+				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
+				client.sendEvent(Events.ON_STUDENT_COURSES_ANSWER.value, encryptedMsg);
+				e.printStackTrace();
 			}
 		});
 	}
