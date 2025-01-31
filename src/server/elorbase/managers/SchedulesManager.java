@@ -7,6 +7,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
+
+import server.elorbase.entities.StudentSchedule;
 import server.elorbase.entities.TeacherSchedule;
 
 public class SchedulesManager {
@@ -40,6 +42,40 @@ public class SchedulesManager {
 				}
 			}
 
+			transaction.commit();
+		} catch (Exception e) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+			e.printStackTrace();
+		} finally {
+			session.close();
+		}
+		
+		return schedules;
+	}
+	
+	public ArrayList<StudentSchedule> getStudentSchedule(int studentId) {
+		ArrayList<StudentSchedule> schedules = null;
+		Session session = sesion.openSession();
+		Transaction transaction = null;
+
+		try {
+			transaction = session.beginTransaction();
+
+			String sql = "CALL StudentSchedule(:student_id)";
+
+			NativeQuery<StudentSchedule> query = session.createNativeQuery(sql, StudentSchedule.class);
+			query.setParameter("student_id", studentId);
+
+			List<StudentSchedule> filas = query.getResultList();
+			if (filas != null && filas.size() > 0) {
+				for (StudentSchedule fila : filas) {
+					if (schedules == null)
+						schedules = new ArrayList<StudentSchedule>();
+					schedules.add(fila);
+				}
+			}
 			transaction.commit();
 		} catch (Exception e) {
 			if (transaction != null) {
