@@ -2,7 +2,7 @@ package server.config;
 
 public class ServerConfig {
 	// Server
-	public static final String HOST_NAME = "localhost";
+	//public static final String HOST_NAME = "localhost";
 	/*
 	 * LEIRE:
 	 * Casa: 192.168.1.139
@@ -11,7 +11,11 @@ public class ServerConfig {
 	 * DAYANA:
 	 * Clase: 10.5.104.51
 	 */
-	//public static final String HOST_NAME = "10.5.104.51"; 
+	
+	//Lucian
+	public static final String HOST_NAME = "10.5.104.25";
+	
+	//public static final String HOST_NAME = "10.5.104.51";
 
 	public static final int PORT = 3000;
 
