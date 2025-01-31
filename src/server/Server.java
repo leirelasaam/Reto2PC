@@ -3,7 +3,7 @@ package server;
 import server.config.ServerConfig;
 import server.eloradmin.socketIO.SocketIOModule;
 import server.elorbase.utils.AESUtil;
-import java.net.InetAddress;
+//import java.net.InetAddress;
 import javax.crypto.SecretKey;
 import org.apache.log4j.Logger;
 import com.corundumstudio.socketio.Configuration;
@@ -20,8 +20,8 @@ public class Server {
 	
 		try {
 			// Buscar IP local y establecerla
-			String hostName = InetAddress.getLocalHost().getHostAddress();
-			config.setHostname(hostName);
+			//String hostName = InetAddress.getLocalHost().getHostAddress();
+			//config.setHostname(hostName);
 			logger.info("Hostname: " + config.getHostname());
 			
 			// Probar encriptación
