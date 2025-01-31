@@ -1,13 +1,17 @@
 package server.elorbase.managers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import server.elorbase.entities.Meeting;
+import server.elorbase.entities.Participant;
 import server.elorbase.utils.DBQueries;
+import server.elorbase.utils.DateUtil;
 
 public class MeetingsManager {
 	
@@ -22,22 +26,25 @@ public class MeetingsManager {
 		Session session = sesion.openSession();
 		
 		try {
-			// Reuniones propias
-			String hql1 = "FROM Meeting m JOIN FETCH m.participants WHERE m.user.id = :userId";
-			Query<Meeting> query1 = session.createQuery(hql1, Meeting.class);
-			query1.setParameter("userId", id);
-			List<Meeting> result1 = query1.list();
+			int currentWeek = DateUtil.getCurrentWeek();
+			//byte currentWeek = (byte) DateUtil.getCurrentWeek();
 
-			// Reuniones como participante
-			String hql2 = "FROM Meeting m JOIN FETCH m.participants p WHERE p.user.id = :userId";
-			Query<Meeting> query2 = session.createQuery(hql2, Meeting.class);
-			query2.setParameter("userId", id);
-			List<Meeting> result2 = query2.list();
+			String hql = DBQueries.MEETINGS_BY_TEACHER;
+			Query<Meeting> q = session.createQuery(hql, Meeting.class);
+			q.setParameter("id", id);
+			q.setParameter("currentWeek", currentWeek);
+			List<Meeting> filas = q.list();
 
-			// Combinar las reuniones
-			List<Meeting> combinedResults = new ArrayList<>();
-			combinedResults.addAll(result1);
-			combinedResults.addAll(result2);
+			if (filas.size()> 0) {
+				meetings = new ArrayList<Meeting>();
+				meetings.addAll(filas);
+				for (Meeting m : meetings) {
+					ArrayList<Participant> p = getParticipantsByMeeting(m.getId());
+					Set<Participant> participantSet = new HashSet<>(p);
+					m.setParticipants(participantSet);
+				}
+			}
+			
 		} catch(Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -45,6 +52,30 @@ public class MeetingsManager {
 		}
 		
 		return meetings;
+	}
+	
+	private ArrayList<Participant> getParticipantsByMeeting(long id) {
+		ArrayList<Participant> participants = null;
+		Session session = sesion.openSession();
+		
+		try {
+			String hql = DBQueries.PARTICIPANTS_BY_MEETING;
+			Query<Participant> q = session.createQuery(hql, Participant.class);
+			q.setParameter("id", id);
+			List<Participant> filas = q.list();
+
+			if (filas.size()> 0) {
+				participants = new ArrayList<Participant>();
+				participants.addAll(filas);
+			}
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			session.close();
+		}
+		
+		return participants;
 	}
 
 }
