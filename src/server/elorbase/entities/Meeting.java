@@ -5,7 +5,6 @@ import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -36,7 +35,7 @@ public class Meeting implements java.io.Serializable {
 	private Timestamp updatedAt;
 	
 	@OneToMany(mappedBy = "meeting", fetch = FetchType.LAZY)
-    @JsonBackReference
+	@JsonManagedReference
 	private Set<Participant> participants = new HashSet<Participant>(0);
 
 	public Meeting() {
