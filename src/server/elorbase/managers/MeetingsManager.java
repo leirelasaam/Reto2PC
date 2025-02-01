@@ -27,8 +27,8 @@ public class MeetingsManager {
 		Session session = sesion.openSession();
 
 		try {
-			//int currentWeek = DateUtil.getCurrentWeek();
-			int currentWeek = 1;
+			int currentWeek = DateUtil.getCurrentWeek();
+			//int currentWeek = 1;
 
 			String hql = DBQueries.MEETINGS_BY_TEACHER;
 			Query<Meeting> q = session.createQuery(hql, Meeting.class);
