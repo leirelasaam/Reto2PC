@@ -64,9 +64,8 @@ public class SocketIOModule {
 		server.addEventListener(Events.ON_TEACHER_SCHEDULE.value, MessageInput.class, this.getTeacherSchedule());
 		server.addEventListener(Events.ON_STUDENT_DOCUMENTS.value, MessageInput.class, this.getStudentDocuments());
 		server.addEventListener(Events.ON_ALL_MEETINGS.value, MessageInput.class, this.getTeacherMeetings());
-		server.addEventListener(Events.ON_PARTICIPANT_STATUS_UPDATE.value, MessageInput.class,
-				this.updateParticipantStatus());
-		server.addEventListener(Events.ON_MEETING_STATUS_UPDATE.value, MessageInput.class, this.updateMeetingStatus());
+		server.addEventListener(Events.ON_PARTICIPANT_STATUS_UPDATE.value, MessageInput.class, this.updateStatus(true));
+		server.addEventListener(Events.ON_MEETING_STATUS_UPDATE.value, MessageInput.class, this.updateStatus(false));
 	}
 
 	// Default events
@@ -345,7 +344,7 @@ public class SocketIOModule {
 		});
 	}
 
-	private DataListener<MessageInput> updateParticipantStatus() {
+	private DataListener<MessageInput> updateStatus(boolean isParticipant) {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
 			logger.info("[Client = " + ip + "] Client wants to get the schedule");
@@ -356,7 +355,8 @@ public class SocketIOModule {
 				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
 
 				/*
-				 * Ejemplo de lo que nos llega: { "userId": 70, "meetingId": 1, "status": "aceptada"}
+				 * Ejemplo de lo que nos llega: { "userId": 70, "meetingId": 1, "status":
+				 * "aceptada"}
 				 */
 				Gson gson = new Gson();
 				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
@@ -365,9 +365,17 @@ public class SocketIOModule {
 				String status = jsonObject.get("status").getAsString();
 
 				MessageOutput msgOut = null;
-				if (status.equals("aceptada") || status.equals("rechazada") || status.equals("pendiente")) {
+				if (status.equals("aceptada") || status.equals("rechazada") || status.equals("pendiente")
+						|| status.equals("forzada") || status.equals("cancelada")) {
+
 					MeetingsManager mm = new MeetingsManager(sesion);
-					boolean isUpdated = mm.updateParticipantStatus(teacherId, meetingId, status);
+					boolean isUpdated;
+					if (isParticipant) {
+						isUpdated = mm.updateParticipantStatus(teacherId, meetingId, status);
+					} else {
+						isUpdated = mm.updateMeetingStatus(teacherId, meetingId, status);
+					}
+
 					if (isUpdated) {
 						msgOut = DefaultMessages.OK;
 					} else {
@@ -378,19 +386,13 @@ public class SocketIOModule {
 				}
 
 				encryptedMsg = AESUtil.encryptObject(msgOut, key);
-				client.sendEvent(Events.ON_PARTICIPANT_STATUS_UPDATE_ANSWER.value, encryptedMsg);
+				client.sendEvent(Events.ON_MEETING_STATUS_UPDATE_ANSWER.value, encryptedMsg);
 				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
 			} catch (Exception e) {
 				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
 				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
-				client.sendEvent(Events.ON_PARTICIPANT_STATUS_UPDATE_ANSWER.value, encryptedMsg);
+				client.sendEvent(Events.ON_MEETING_STATUS_UPDATE_ANSWER.value, encryptedMsg);
 			}
-		});
-	}
-	
-	private DataListener<MessageInput> updateMeetingStatus() {
-		return ((client, data, ackSender) -> {
-
 		});
 	}
 
