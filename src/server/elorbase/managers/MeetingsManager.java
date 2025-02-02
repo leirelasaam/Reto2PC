@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -16,7 +17,8 @@ import server.elorbase.utils.DateUtil;
 
 public class MeetingsManager {
 
-	SessionFactory sesion = null;
+	private static final Logger logger = Logger.getLogger(MeetingsManager.class);
+	private SessionFactory sesion = null;
 
 	public MeetingsManager(SessionFactory sesion) {
 		this.sesion = sesion;
@@ -24,9 +26,10 @@ public class MeetingsManager {
 
 	public ArrayList<Meeting> getMeetingsByUser(int id) {
 		ArrayList<Meeting> meetings = null;
-		Session session = sesion.openSession();
+		Session session = null;
 
 		try {
+			session = sesion.openSession();
 			int currentWeek = DateUtil.getCurrentWeek();
 			//int currentWeek = 1;
 
@@ -47,7 +50,7 @@ public class MeetingsManager {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		} finally {
 			session.close();
 		}
@@ -57,9 +60,10 @@ public class MeetingsManager {
 
 	private ArrayList<Participant> getParticipantsByMeeting(long id) {
 		ArrayList<Participant> participants = null;
-		Session session = sesion.openSession();
+		Session session = null;
 
 		try {
+			session = sesion.openSession();
 			String hql = DBQueries.PARTICIPANTS_BY_MEETING;
 			Query<Participant> q = session.createQuery(hql, Participant.class);
 			q.setParameter("id", id);
@@ -71,7 +75,7 @@ public class MeetingsManager {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		} finally {
 			session.close();
 		}
@@ -81,10 +85,11 @@ public class MeetingsManager {
 
 	public boolean updateParticipantStatus(int userId, int meetingId, String status) {
 		boolean isUpdated = true;
-		Session session = sesion.openSession();
+		Session session = null;
 		Transaction transaction = null;
 
 		try {
+			session = sesion.openSession();
 			transaction = session.beginTransaction();
 			
 			// Buscar el registro en participants
@@ -108,7 +113,7 @@ public class MeetingsManager {
 			if (transaction != null) {
 				transaction.rollback();
 			}
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		} finally {
 			session.close();
 		}
@@ -118,10 +123,11 @@ public class MeetingsManager {
 	
 	public boolean updateMeetingStatus(int userId, int meetingId, String status) {
 		boolean isUpdated = true;
-		Session session = sesion.openSession();
+		Session session = null;
 		Transaction transaction = null;
 
 		try {
+			session = sesion.openSession();
 			transaction = session.beginTransaction();
 			
 			// Buscar el registro en meetings
@@ -145,7 +151,7 @@ public class MeetingsManager {
 			if (transaction != null) {
 				transaction.rollback();
 			}
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		} finally {
 			session.close();
 		}

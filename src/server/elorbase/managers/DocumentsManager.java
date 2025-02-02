@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -15,7 +16,8 @@ import server.elorbase.utils.DBQueries;
 
 public class DocumentsManager {
 
-	SessionFactory sesion = null;
+	private static final Logger logger = Logger.getLogger(DocumentsManager.class);
+	private SessionFactory sesion = null;
 
 	public DocumentsManager(SessionFactory sesion) {
 		this.sesion = sesion;
@@ -47,7 +49,7 @@ public class DocumentsManager {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		} finally {
 			session.close();
 		}
