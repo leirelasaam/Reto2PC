@@ -26,5 +26,17 @@ public class DateUtil {
 
         return (int) (diffInDays / 7) + 1;
     }
+    
+    public static int getCurrentDay() {
+        Calendar calendar = Calendar.getInstance();
+        
+        calendar.setFirstDayOfWeek(Calendar.MONDAY);
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        if (dayOfWeek == Calendar.SUNDAY) {
+        	dayOfWeek = 7;
+        }
+        
+        return dayOfWeek;
+    }
 
 }
