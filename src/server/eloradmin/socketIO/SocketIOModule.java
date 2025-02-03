@@ -376,8 +376,8 @@ public class SocketIOModule {
 	            String phone2 = updatedUser.getPhone2();
 	            boolean registered = updatedUser.isRegistered();
 	            
-	            //byte[] photo = updatedUser.getPhoto();
-	            byte[] photo = Base64.getDecoder().decode(updatedUser.getPhoto());
+	           byte[] photo = updatedUser.getPhoto();
+	           
 	            updatedUser.setPhoto(photo);
 	            
 	            // Ahora hay que tomar el id e ir actualizando los datos del usuario en la base de datos
