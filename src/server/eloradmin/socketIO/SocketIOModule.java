@@ -247,7 +247,7 @@ public class SocketIOModule {
 				MessageOutput msgOut = null;
 				if (user != null) {
 					if (BcryptUtil.verifyPassword(old_password, user.getPassword())) {
-						if (BcryptUtil.verifyPassword(old_password, new_password)) {
+						if (!old_password.equals(new_password)) {
 							um.updatePasswordByUser(user, new_password);
 							msgOut = DefaultMessages.OK;
 						} else {
