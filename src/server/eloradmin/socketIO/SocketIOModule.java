@@ -26,6 +26,7 @@ import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
 import server.elorbase.entities.Course;
 import server.elorbase.entities.Document;
+import server.elorbase.entities.StudentSchedule;
 import server.elorbase.entities.Meeting;
 import server.elorbase.entities.TeacherSchedule;
 import server.elorbase.entities.User;
@@ -63,7 +64,7 @@ public class SocketIOModule {
 		server.addEventListener(Events.ON_LOGOUT.value, MessageInput.class, this.logout());
 		server.addEventListener(Events.ON_RESET_PASS_EMAIL.value, MessageInput.class, this.sendResetPassEmail());
 		server.addEventListener(Events.ON_TEACHER_SCHEDULE.value, MessageInput.class, this.getTeacherSchedule());
-		//server.addEventListener(Events.ON_STUDENT_SCHEDULE.value, MessageInput.class, this.getStudentSchedule());
+		server.addEventListener(Events.ON_STUDENT_SCHEDULE.value, MessageInput.class, this.getStudentSchedule());
 		server.addEventListener(Events.ON_STUDENT_DOCUMENTS.value, MessageInput.class, this.getStudentDocuments());
 		server.addEventListener(Events.ON_ALL_MEETINGS.value, MessageInput.class, this.getTeacherMeetings());
 		server.addEventListener(Events.ON_PARTICIPANT_STATUS_UPDATE.value, MessageInput.class, this.updateStatus(true));
@@ -135,9 +136,12 @@ public class SocketIOModule {
 							// No está registrado y su rol es profe/estudiante
 						} else if ((user.getRole().getRole().equals("profesor")
 								|| user.getRole().getRole().equals("estudiante"))) {
-							msgOut = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN, answerMessage);
+							
+							msgOut = new MessageOutput(HttpURLConnection.HTTP_FORBIDDEN,
+									answerMessage);
 							// Es god o admin, no debe acceder a Elorclass
-						} else {
+						} else {	
+
 							msgOut = DefaultMessages.BAD_REQUEST;
 						}
 						// Se ha encontrado el usuario y la contraseña no coincide
@@ -267,6 +271,44 @@ public class SocketIOModule {
 		});
 	}
 
+
+	private DataListener<MessageInput> getStudentSchedule() {
+		return ((client, data, ackSender) -> {
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Client wants to get the schedule");
+			String encryptedMsg = null;
+			try {
+				String clientMsg = data.getMessage();
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
+
+				Gson gson = new Gson();
+				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
+				int studentId = jsonObject.get("message").getAsInt();
+
+				MessageOutput msgOut = null;
+
+				SchedulesManager sm = new SchedulesManager(sesion);
+				ArrayList<StudentSchedule> schedules = sm.getStudentSchedule(studentId);
+
+				if (schedules != null) {
+					String answerMessage = JSONUtil.getSerializedArrayString(schedules, "schedules");
+					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
+				} else {
+					msgOut = DefaultMessages.NOT_FOUND;
+				}
+
+				encryptedMsg = AESUtil.encryptObject(msgOut, key);
+				client.sendEvent(Events.ON_STUDENT_SCHEDULE_ANSWER.value, encryptedMsg);
+				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
+			} catch (Exception e) {
+				logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+				encryptedMsg = AESUtil.encryptObject(DefaultMessages.INTERNAL_SERVER, key);
+				client.sendEvent(Events.ON_STUDENT_SCHEDULE_ANSWER.value, encryptedMsg);
+			}
+		});
+	}
+
 	private DataListener<MessageInput> getStudentDocuments() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -306,7 +348,7 @@ public class SocketIOModule {
 			}
 		});
 	}
-	
+
 	private DataListener<MessageInput> getAllCourses() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -314,17 +356,17 @@ public class SocketIOModule {
 			String encryptedMsg = null;
 			try {
 				MessageOutput msgOut = null;
-				
+
 				CoursesManager cm = new CoursesManager(sesion);
 				ArrayList<Course> courses = cm.getAllCourses();
-				
+
 				if (courses != null) {
 					String answerMessage = JSONUtil.getSerializedArrayString(courses, "courses");
 					msgOut = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
 				} else {
 					msgOut = DefaultMessages.NOT_FOUND;
 				}
-				
+
 				encryptedMsg = AESUtil.encryptObject(msgOut, key);
 				client.sendEvent(Events.ON_STUDENT_COURSES_ANSWER.value, encryptedMsg);
 				logger.debug("[Client = " + ip + "] Sending: " + msgOut.toString());
