@@ -391,7 +391,7 @@ public class SocketIOModule {
 	            updatedUser.setId(id); 
 	            updatedUser.setName(name);
 	            updatedUser.setEmail(email);
-	            updatedUser.setPassword(password);
+	            //updatedUser.setPassword(password);
 	            updatedUser.setLastname(lastname); 
 	            updatedUser.setPin(pin);
 	            updatedUser.setAddress(address); 
@@ -403,6 +403,8 @@ public class SocketIOModule {
 	            // Ahora hay que tomar el id e ir actualizando los datos del usuario en la base de datos
 	            UsersManager um = new UsersManager(sesion);
 	            boolean updated = um.updateUser(updatedUser);
+	            
+	            um.updatePasswordByUser(updatedUser, password);
 	            
 	            if (updated) {
 	                // Actualización exitosa: 200 OK
