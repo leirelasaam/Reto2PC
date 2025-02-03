@@ -62,9 +62,6 @@ public class SocketIOModule {
 		server.addEventListener(Events.ON_LOGOUT.value, MessageInput.class, this.logout());
 		server.addEventListener(Events.ON_RESET_PASS_EMAIL.value, MessageInput.class, this.sendResetPassEmail());
 		server.addEventListener(Events.ON_TEACHER_SCHEDULE.value, MessageInput.class, this.getTeacherSchedule());
-		
-		//Registro - Cargar datos del usuario en el registro
-		server.addEventListener(Events.ON_REGISTER_INFO.value, MessageInput.class, this.getUserDataForSignUp());
 	    
 	    //Registro - Guardar datos actualizados del usuario en la BBDD
 	    server.addEventListener(Events.ON_REGISTER_UPDATE.value, MessageInput.class, this.saveUpdatedSignUpData());
@@ -344,60 +341,31 @@ public class SocketIOModule {
 		});
 	}
 	
-	//Comprobar que las funciones funcionan correctamente
-	private DataListener<MessageInput> getUserDataForSignUp() { 
+	//Funcion de prueba
+	private DataListener<MessageInput> saveUpdatedSignUpData() {
 	    return ((client, data, ackSender) -> {
-	    	String ip = client.getRemoteAddress().toString();
-			logger.info("[Client = " + ip + "] Client wants to sign up");
+	        String ip = client.getRemoteAddress().toString();
+	        logger.info("[Client = " + ip + "] Received event: ON_REGISTER_UPDATE");
 
-			String encryptedMsg = null;
-			try {
-				String clientMsg = data.getMessage();
-				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
-				
-				/*
-				 * Ejemplo de lo que nos llega: { "login": "user@example.com"}
-				 */
-				
-				// Extraer login y password
-				Gson gson = new Gson();
-				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
-				String login = jsonObject.get("login").getAsString();        
-	            
-	            logger.debug("[Client = " + ip + "] Not encripted user Lucian: " + login);
-	            
-	            // Buscar el usuario por email
-	            UsersManager um = new UsersManager(sesion);
-				User user = um.getByEmailOrPin(login.trim().toLowerCase());			
-				logger.debug("[Client = " + ip + "] Not encripted user desde getUserDataForSignUp: " + user);
-				
-				MessageOutput messageOutput = null;
-	            // No se ha encontrado el usuario > 404 - NOT FOUND
-	            if (user == null) {
-	                client.sendEvent(Events.ON_REGISTER_INFO_ANSWER.value, DefaultMessages.NOT_FOUND);
-	                logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.NOT_FOUND.toString());
-	             // Usuario encontrado
-	            } else {
-	            	
-	                //Usuario encontrado, enviar todos los datos
-	               String answerMessage = JSONUtil.getSerializedString(user);
-	               messageOutput = new MessageOutput(HttpURLConnection.HTTP_OK, answerMessage);
-	                client.sendEvent(Events.ON_REGISTER_INFO_ANSWER.value, messageOutput);
-	                logger.debug("[Client = " + ip + "] Not encripted user: " + answerMessage);
-	                logger.debug("[Client = " + ip + "] Sending: " + messageOutput.toString());
-	                
-	                
+	        try {
+	            if (data == null || data.getMessage() == null) {
+	                logger.error("[Client = " + ip + "] ERROR: Received null message");
+	                return;
 	            }
+
+	            String clientMsg = data.getMessage();
+	            logger.debug("[Client = " + ip + "] Raw encrypted message: " + clientMsg);
+	            
+	            String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+	            logger.debug("[Client = " + ip + "] Decrypted message: " + decryptedMsg);
 	        } catch (Exception e) {
-	            logger.error("[Client = " + ip + "] Error: " + e.getMessage());
-	            client.sendEvent(Events.ON_REGISTER_INFO_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-	            logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+	            logger.error("[Client = " + ip + "] Error while decrypting: " + e.getMessage(), e);
 	        }
 	    });
 	}
-
+	
 	//Comprobar que las funciones funcionan correctamente
-	private DataListener<MessageInput> saveUpdatedSignUpData() {
+	private DataListener<MessageInput> saveUpdatedSignUpData1() {
 	    return ((client, data, ackSender) -> {
 	        String ip = client.getRemoteAddress().toString();
 	        logger.info("[Client = " + ip + "] Client wants to update SignUp data.");
@@ -449,8 +417,12 @@ public class SocketIOModule {
 	                logger.debug("[Client = " + ip + "] Error updating user in the database.");
 	            }
 	        } catch (Exception e) {
-	            logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+	        	
+	        	logger.error("[Client = " + ip + "] Error en saveUpdatedSignUpData: " + e.getMessage(), e);
 	            client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+	        	
+	            //logger.error("[Client = " + ip + "] Error: " + e.getMessage());
+	            //client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
 	            logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
 	            
 	        }
