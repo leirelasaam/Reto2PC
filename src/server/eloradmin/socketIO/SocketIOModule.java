@@ -2,6 +2,7 @@ package server.eloradmin.socketIO;
 
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.Base64;
 
 import javax.crypto.SecretKey;
 
@@ -358,8 +359,49 @@ public class SocketIOModule {
 	            
 	            String decryptedMsg = AESUtil.decrypt(clientMsg, key);
 	            logger.debug("[Client = " + ip + "] Decrypted message: " + decryptedMsg);
+	            
+	         // Deserializar el JSON recibido
+	            Gson gson = new Gson();
+	            User updatedUser = gson.fromJson(decryptedMsg, User.class);
+				
+	            //Datps extraidos del usuario actualizado
+	            Long id = updatedUser.getId();
+	            String name = updatedUser.getName();
+	            String email = updatedUser.getEmail();
+	            String password = updatedUser.getPassword();
+	            String lastname = updatedUser.getLastname();
+	            String pin = updatedUser.getPin();
+	            String address = updatedUser.getAddress();
+	            String phone1 = updatedUser.getPhone1();
+	            String phone2 = updatedUser.getPhone2();
+	            boolean registered = updatedUser.isRegistered();
+	            
+	            //byte[] photo = updatedUser.getPhoto();
+	            byte[] photo = Base64.getDecoder().decode(updatedUser.getPhoto());
+	            updatedUser.setPhoto(photo);
+	            
+	            // Ahora hay que tomar el id e ir actualizando los datos del usuario en la base de datos
+	            UsersManager um = new UsersManager(sesion);
+	            boolean updated = um.updateUser(updatedUser);
+	            
+	            if (updated) {
+	                // Actualización exitosa: 200 OK
+	                client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.OK);
+	                logger.debug("[Client = " + ip + "] User: "+ id + ", " + name + " updated successfully.");
+	                
+	                //Devolver un evento con que se ha guardado todo bien en la base de datos.
+	                
+	            } else {
+	                // Fallo en la actualización: 500 INTERNAL SERVER ERROR
+	                client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+	                logger.debug("[Client = " + ip + "] Error updating user in the database.");
+	            }
+	            
 	        } catch (Exception e) {
 	            logger.error("[Client = " + ip + "] Error while decrypting: " + e.getMessage(), e);
+	            logger.error("[Client = " + ip + "] Error while processing saveUpdatedSignUpData: " + e.getMessage(), e);
+	            client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+	            logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
 	        }
 	    });
 	}
@@ -389,8 +431,11 @@ public class SocketIOModule {
 	            String address = updatedUser.getAddress();
 	            String phone1 = updatedUser.getPhone1();
 	            String phone2 = updatedUser.getPhone2();
-	            byte[] photo = updatedUser.getPhoto();
 	            boolean registered = updatedUser.isRegistered();
+	            
+	            //byte[] photo = updatedUser.getPhoto();
+	            byte[] photo = Base64.getDecoder().decode(updatedUser.getPhoto());
+	            
 	            
 	            
 	            // Validar que el usuario recibido no sea nulo
