@@ -402,21 +402,39 @@ public class SocketIOModule {
 	        String ip = client.getRemoteAddress().toString();
 	        logger.info("[Client = " + ip + "] Client wants to update SignUp data.");
 
-	        try {
-	            String clientMsg = data.getMessage();
-	            logger.debug("[Client = " + ip + "] Server received: " + clientMsg);
+	        String encryptedMsg = null;
+			try {
+				String clientMsg = data.getMessage();
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				logger.debug("[Client = " + ip + "] Server received: " + decryptedMsg);
 
 	            // Deserializar el JSON recibido
 	            Gson gson = new Gson();
-	            User updatedUser = gson.fromJson(clientMsg, User.class);
-
+	            User updatedUser = gson.fromJson(decryptedMsg, User.class);
+				
+	            //Datps extraidos del usuario actualizado
+	            String name = updatedUser.getName();
+	            String email = updatedUser.getEmail();
+	            String password = updatedUser.getPassword();
+	            String lastname = updatedUser.getLastname();
+	            String pin = updatedUser.getPin();
+	            String address = updatedUser.getAddress();
+	            String phone1 = updatedUser.getPhone1();
+	            String phone2 = updatedUser.getPhone2();
+	            byte[] photo = updatedUser.getPhoto();
+	            boolean registered = updatedUser.isRegistered();
+	            
+	            
 	            // Validar que el usuario recibido no sea nulo
-	            if (updatedUser == null || updatedUser.getId() == null) {
+	            if (updatedUser == null || updatedUser.getEmail() == null) {
 	                client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.BAD_REQUEST);
 	                logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.BAD_REQUEST.toString());
 	                return;
 	            }
 
+	            //Me he quedado aqui, tengo que actualizar la BBDD con lo recibido
+	            //**********************************************************************************************************************
+	            
 	            // Actualizar los datos en la base de datos
 	            UsersManager um = new UsersManager(sesion);
 	            boolean updated = um.updateUser(updatedUser);
