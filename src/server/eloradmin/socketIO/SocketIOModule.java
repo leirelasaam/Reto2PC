@@ -14,6 +14,7 @@ import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+
 import com.google.gson.JsonObject;
 
 import server.eloradmin.config.Events;
@@ -36,6 +37,9 @@ import server.elorbase.utils.HibernateUtil;
 import server.elorbase.utils.JSONUtil;
 import server.elormail.EmailSender;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 /**
  * Server control main configuration class
  */
@@ -360,24 +364,40 @@ public class SocketIOModule {
 	            String decryptedMsg = AESUtil.decrypt(clientMsg, key);
 	            logger.debug("[Client = " + ip + "] Decrypted message: " + decryptedMsg);
 	            
+	            
+	         // Convertir el JSON a un objeto JsonObject
+	            JsonObject jsonObject = JsonParser.parseString(decryptedMsg).getAsJsonObject();
+	            
+	            
+	            
 	         // Deserializar el JSON recibido
 	            Gson gson = new Gson();
-	            User updatedUser = gson.fromJson(decryptedMsg, User.class);
+	            User updatedUser = new User();
 				
 	            //Datps extraidos del usuario actualizado
-	            Long id = updatedUser.getId();
-	            String name = updatedUser.getName();
-	            String email = updatedUser.getEmail();
-	            String password = updatedUser.getPassword();
-	            String lastname = updatedUser.getLastname();
-	            String pin = updatedUser.getPin();
-	            String address = updatedUser.getAddress();
-	            String phone1 = updatedUser.getPhone1();
-	            String phone2 = updatedUser.getPhone2();
-	            boolean registered = updatedUser.isRegistered();
-	            
-	           byte[] photo = updatedUser.getPhoto();
-	           
+	            Long id = jsonObject.has("id") ? Long.parseLong(jsonObject.get("id").getAsString()) : null;
+	            String name = jsonObject.has("name") ? jsonObject.get("name").getAsString() : null;
+	            String email = jsonObject.has("email") ? jsonObject.get("email").getAsString() : null;
+	            String password = jsonObject.has("password") ? jsonObject.get("password").getAsString() : null;
+	            String lastname = jsonObject.has("lastname") ? jsonObject.get("lastname").getAsString() : null;
+	            String pin = jsonObject.has("pin") ? jsonObject.get("pin").getAsString() : null;
+	            String address = jsonObject.has("address") ? jsonObject.get("address").getAsString() : null;
+	            String phone1 = jsonObject.has("phone1") ? jsonObject.get("phone1").getAsString() : null;
+	            String phone2 = jsonObject.has("phone2") ? jsonObject.get("phone2").getAsString() : null;
+	            boolean registered = jsonObject.has("registered") && jsonObject.get("registered").getAsBoolean();
+
+	            byte[] photo = jsonObject.has("photo") ? Base64.getDecoder().decode(jsonObject.get("photo").getAsString()) : null;
+
+	            updatedUser.setId(id); 
+	            updatedUser.setName(name);
+	            updatedUser.setEmail(email);
+	            updatedUser.setPassword(password);
+	            updatedUser.setLastname(lastname); 
+	            updatedUser.setPin(pin);
+	            updatedUser.setAddress(address); 
+	            updatedUser.setPhone1(phone1);
+	            updatedUser.setPhone2(phone2); 
+	            updatedUser.setRegistered(registered); 
 	            updatedUser.setPhoto(photo);
 	            
 	            // Ahora hay que tomar el id e ir actualizando los datos del usuario en la base de datos

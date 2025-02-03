@@ -13,9 +13,9 @@ public class ServerConfig {
 	 */
 	
 	//Lucian
-	//public static final String HOST_NAME = "10.5.104.25";
+	public static final String HOST_NAME = "10.5.104.25";
 	//Lucian Casa PC
-	public static final String HOST_NAME = "192.168.1.135";
+	//public static final String HOST_NAME = "192.168.1.135";
 	
 	
 	//public static final String HOST_NAME = "10.5.104.51";
