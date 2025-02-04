@@ -57,7 +57,6 @@
         <property name="registered" type="boolean">
             <column name="registered" not-null="true"/>
         </property>
-        <!--  
         <set fetch="select" inverse="true" lazy="true" name="modules" table="modules">
             <key>
                 <column name="user_id"/>
@@ -76,6 +75,5 @@
             </key>
             <one-to-many class="server.elorbase.entities.Meeting"/>
         </set>
-        -->
     </class>
 </hibernate-mapping>
