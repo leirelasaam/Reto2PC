@@ -1,7 +1,15 @@
 package server.config;
 
 public class ServerConfig {
-
+	// Server
+		/*
+		 * LEIRE:
+		 * Casa: 192.168.1.142
+		 * Clase: 10.5.104.31
+		 * 
+		 * DAYANA:
+		 * Clase: 10.5.104.53
+		 */
 	public static final String HOST_NAME = "192.168.56.1";
 
 	public static final int PORT = 3000;
