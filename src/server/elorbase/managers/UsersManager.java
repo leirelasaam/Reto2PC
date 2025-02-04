@@ -1,5 +1,7 @@
 package server.elorbase.managers;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -42,10 +44,23 @@ public class UsersManager {
 		return u;
 	}
 
+
+	public List<User> getUsersByRole(long idRole) {
+
+		Session session = sesion.openSession();
+		String hql = DBQueries.U_BY_ROLE;
+		Query<User> q = session.createQuery(hql, User.class);
+		q.setParameter("roleId", idRole);
+		List<User> users = q.getResultList();
+
+		session.close();
+		return users;
+	}
+
 	public void updatePasswordByUser(User user, String password) {
 		Session session = null;
 		Transaction transaction = null;
-		
+
 		try {
 			session = sesion.openSession();
 			transaction = session.beginTransaction();
