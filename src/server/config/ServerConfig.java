@@ -2,6 +2,7 @@ package server.config;
 
 public class ServerConfig {
 	// Server
+
 	public static final String HOST_NAME = "localhost";
 	/*
 	 * LEIRE:
@@ -11,7 +12,16 @@ public class ServerConfig {
 	 * DAYANA:
 	 * Clase: 10.5.104.51
 	 */
-	public static final String HOST_NAME = "10.5.104.51"; 
+	//public static final String HOST_NAME = "10.5.104.51"; 
+		/*
+		 * LEIRE:
+		 * Casa: 192.168.1.142
+		 * Clase: 10.5.104.31
+		 * 
+		 * DAYANA:
+		 * Clase: 10.5.104.53
+		 */
+
 
 	public static final int PORT = 3000;
 	// SMTP
@@ -21,6 +31,6 @@ public class ServerConfig {
 	public static String SMTP_PASS = "mmde jyrc unnu eifp"; 
 	// Ecriptación
 	public static String AES_KEY = "src/server/config/aes.key";
-	
-	public static String MODULE_FILES = "src/server/elordocs/";
+
+	public static String MODULE_FILES = "resources/elordocs/";
 }

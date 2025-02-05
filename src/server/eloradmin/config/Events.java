@@ -12,13 +12,24 @@ public enum Events {
     ON_RESET_PASS_EMAIL_ANSWER("onResetPassEmailAnswer"),
     ON_TEACHER_SCHEDULE("onTeacherSchedule"),
     ON_TEACHER_SCHEDULE_ANSWER("onTeacherScheduleAnswer"),
-    ON_STUDENT_SCHEDULE("onStudentSchedule"),
-	ON_STUDENT_SCHEDULE_ANSWER("onStudentScheduleAnswer"),
+	ON_GET_ALL_USERS_ANSWER ("onGetAllUsersAnswer"),
+	ON_GET_ALL_USERS("onGetAllUsers"), 
+	ON_CREATE_MEETING("onCreateMeeting"),
+	ON_CREATE_MEETING_ANSWER("onCreateMeetingAnswer"),
     ON_STUDENT_DOCUMENTS("onStudentDocuments"),
     ON_STUDENT_DOCUMENTS_ANSWER("onStudentDocumentsAnswer"),
+    ON_UPDATE_PASS("onUpdatePass"),
+    ON_UPDATE_PASS_ANSWER("onUpdatePassAnswer"),
+    ON_STUDENT_SCHEDULE("onStudentSchedule"),
+	ON_STUDENT_SCHEDULE_ANSWER("onStudentScheduleAnswer"),
+    ON_ALL_MEETINGS("onAllMeetings"),
+    ON_ALL_MEETINGS_ANSWER("onAllMeetingsAnswer"),
+    ON_PARTICIPANT_STATUS_UPDATE("onParticipantStatusUpdate"),
+    ON_PARTICIPANT_STATUS_UPDATE_ANSWER("onParticipantStatusUpdateAnswer"),
+    ON_MEETING_STATUS_UPDATE("onMeetingStatusUpdate"),
+    ON_MEETING_STATUS_UPDATE_ANSWER("onMeetingStatusUpdateAnswer"),
 	ON_STUDENT_COURSES("onStudentCourses"),
 	ON_STUDENT_COURSES_ANSWER("onStudentCoursesAnswer");
-
 
 	public final String value;
 

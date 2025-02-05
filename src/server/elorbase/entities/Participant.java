@@ -3,8 +3,8 @@ package server.elorbase.entities;
 
 import java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -29,8 +29,7 @@ public class Participant implements java.io.Serializable {
 	private User user;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "meeting_id")
-	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+	@JsonBackReference
 	private Meeting meeting;
 	
 	private String status;
