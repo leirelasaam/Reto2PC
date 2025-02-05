@@ -12,6 +12,9 @@ public enum Events {
     ON_RESET_PASS_EMAIL_ANSWER("onResetPassEmailAnswer"),
     ON_TEACHER_SCHEDULE("onTeacherSchedule"),
     ON_TEACHER_SCHEDULE_ANSWER("onTeacherScheduleAnswer"),
+    //Registro - Guardar datos actualizados del usuario en la BBDD
+    ON_REGISTER_UPDATE("onRegisterUpdate"),
+    ON_REGISTER_UPDATE_ANSWER("onRegisterUpdateAnswer"),
 	ON_GET_ALL_USERS_ANSWER ("onGetAllUsersAnswer"),
 	ON_GET_ALL_USERS("onGetAllUsers"), 
 	ON_CREATE_MEETING("onCreateMeeting"),
