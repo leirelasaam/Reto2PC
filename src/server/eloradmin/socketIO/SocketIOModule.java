@@ -492,7 +492,7 @@ public class SocketIOModule {
 	            updatedUser.setId(id); 
 	            updatedUser.setName(name);
 	            updatedUser.setEmail(email);
-	            updatedUser.setPassword(password);
+	            updatedUser.setPassword(BcryptUtil.getHashedPass(password));
 	            updatedUser.setLastname(lastname); 
 	            updatedUser.setPin(pin);
 	            updatedUser.setAddress(address); 
@@ -505,7 +505,7 @@ public class SocketIOModule {
 	            UsersManager um = new UsersManager(sesion);
 	            boolean updated = um.updateUser(updatedUser);
 	            
-	            um.updatePasswordByUser(updatedUser, password);
+	            //um.updatePasswordByUser(updatedUser, password);
 	            
 	            if (updated) {
 	                // Actualización exitosa: 200 OK
