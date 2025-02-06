@@ -1,5 +1,7 @@
 package server.elorbase.managers;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -42,10 +44,23 @@ public class UsersManager {
 		return u;
 	}
 
+
+	public List<User> getUsersByRole(long idRole) {
+
+		Session session = sesion.openSession();
+		String hql = DBQueries.U_BY_ROLE;
+		Query<User> q = session.createQuery(hql, User.class);
+		q.setParameter("roleId", idRole);
+		List<User> users = q.getResultList();
+
+		session.close();
+		return users;
+	}
+
 	public void updatePasswordByUser(User user, String password) {
 		Session session = null;
 		Transaction transaction = null;
-		
+
 		try {
 			session = sesion.openSession();
 			transaction = session.beginTransaction();
@@ -68,5 +83,34 @@ public class UsersManager {
 			session.close();
 		}
 	}
+
+	//Comprobar que las funciones funcionan correctamente
+	public boolean updateUser(User updatedUser) {
+	    Session session = sesion.openSession();
+	    session.beginTransaction();
+
+	    try {
+	        if (updatedUser != null) {
+	            // Actualiza el usuario en la base de datos usando `merge`
+	            session.merge(updatedUser);
+	            session.getTransaction().commit();
+	            System.out.println("Usuario actualizado correctamente: " + updatedUser.getEmail());
+	            return true;
+	        } else {
+	            System.out.println("El usuario proporcionado es nulo. No se puede actualizar.");
+	            return false;
+	        }
+	    } catch (Exception e) {
+	        // En caso de error, realiza un rollback
+	        session.getTransaction().rollback();
+	        System.err.println("Error actualizando usuario: " + e.getMessage());
+	        e.printStackTrace();
+	        return false;
+	    } finally {
+	        // Cierra la sesión para liberar recursos
+	        session.close();
+	    }
+	}
+
 
 }
