@@ -15,28 +15,10 @@ public class ParticipantsManager {
 	}
 
 	// Método para crear una nueva reunión
-	public void createParticipants(Participant participants) {
+	public void createParticipants(Participant participants, Session session) {
 
-		// Abrir una nueva sesión de Hibernate
-		Session session = sesion.openSession();
 		Transaction transaction = null;
 
-		try {
-			transaction = session.beginTransaction();
-
-			participants.setStatus("pendiente"); // Estado predeterminado
-
-			session.persist(participants);
-
-			// Confirmar la transacción
-			transaction.commit();
-		} catch (Exception e) {
-			if (transaction != null) {
-				transaction.rollback();
-			}
-			e.printStackTrace();
-		} finally {
-			session.close();
-		}
+		session.persist(participants);
 	}
 }

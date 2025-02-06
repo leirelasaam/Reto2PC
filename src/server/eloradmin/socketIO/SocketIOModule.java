@@ -1,9 +1,14 @@
 package server.eloradmin.socketIO;
 
 import java.util.List;
-
+import java.util.Set;
 import java.net.HttpURLConnection;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 
 import javax.crypto.SecretKey;
 
@@ -31,6 +36,7 @@ import server.elorbase.entities.Course;
 import server.elorbase.entities.Document;
 import server.elorbase.entities.StudentSchedule;
 import server.elorbase.entities.Meeting;
+import server.elorbase.entities.Participant;
 import server.elorbase.entities.TeacherSchedule;
 import server.elorbase.entities.User;
 import server.elorbase.utils.AESUtil;
@@ -39,6 +45,8 @@ import server.elorbase.utils.HibernateUtil;
 import server.elorbase.utils.JSONUtil;
 import server.elormail.EmailSender;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
 /**
  * Server control main configuration class
@@ -263,8 +271,8 @@ public class SocketIOModule {
 						} else {
 							msgOut = DefaultMessages.CONFLICT;
 						}
-						
-					}else {
+
+					} else {
 						msgOut = DefaultMessages.UNAUTHORIZED;
 					}
 				} else {
@@ -614,13 +622,48 @@ public class SocketIOModule {
 				Gson gson = new Gson();
 				JsonObject jsonObject = gson.fromJson(decryptedMsg, JsonObject.class);
 				Meeting meetingAInsertar = new Meeting();
-				meetingAInsertar.setDay(jsonObject.get("date").getAsByte());
+				// if(jsonObject.get("day") != null)
+				meetingAInsertar.setDay(jsonObject.get("day").getAsByte());
 				meetingAInsertar.setTime(jsonObject.get("time").getAsByte());
+				meetingAInsertar.setWeek(jsonObject.get("week").getAsByte());
+				meetingAInsertar.setStatus(jsonObject.get("status").getAsString());
+				meetingAInsertar.setTitle(jsonObject.get("title").getAsString());
+				meetingAInsertar.setRoom(jsonObject.get("room").getAsByte());
+				meetingAInsertar.setSubject(jsonObject.get("subject").getAsString());
+
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+				Date parsedCreateAt = sdf.parse(jsonObject.get("created_at").getAsString());
+				Date parsedUpdateAt = sdf.parse(jsonObject.get("updated_at").getAsString());
+
+				meetingAInsertar.setCreatedAt(new Timestamp(parsedCreateAt.getTime()));
+				meetingAInsertar.setUpdatedAt(new Timestamp(parsedUpdateAt.getTime()));
+				JsonObject userObject = jsonObject.getAsJsonObject("user");
+
+				UsersManager um = new UsersManager(sesion);
+				meetingAInsertar.setUser(um.getUserById(userObject.get("id").getAsInt()));
+
+				Set<Participant> participants = new HashSet<>();
+				JsonArray participantsArray = jsonObject.getAsJsonArray("participants");
+				if (participantsArray != null) {
+					for (JsonElement participantJson : participantsArray) {
+						int participantId = participantJson.getAsJsonObject().get("idUser").getAsInt();
+						User user = um.getUserById(participantId);
+						Participant participant = new Participant();
+						participant.setUser(user);
+						participant.setStatus("pendiente");
+						participant.setUpdatedAt(Timestamp.from(ZonedDateTime.now().toInstant()));
+						participant.setCreatedAt(Timestamp.from(ZonedDateTime.now().toInstant()));
+						participants.add(participant);
+					}
+				}
+				meetingAInsertar.setParticipants(participants);
+
 				// int organizerId = jsonObject.get("organizerId").getAsInt();
 
 				// Create a new meeting using MeetingManager
 				MeetingManager meetingManager = new MeetingManager(sesion);
-				Meeting meetingCreada = meetingManager.createMeeting(meetingAInsertar, null);
+				Meeting meetingCreada = meetingManager.createMeeting(meetingAInsertar);
 
 				MessageOutput msgOut;
 

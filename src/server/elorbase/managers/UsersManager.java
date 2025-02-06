@@ -83,5 +83,27 @@ public class UsersManager {
 			session.close();
 		}
 	}
+	
+	public User getUserById(int id) {
+		User u = new User();
+		Session session = null;
+		
+		try {
+			session = sesion.openSession();
+			String hql = DBQueries.USER_BY_ID;
+			Query<User> q = session.createQuery(hql, User.class);
+			q.setParameter("id", id);
+			q.setMaxResults(1);
+
+			// No obtener como lista, ya que solo puede devolver uno o null
+			u = q.uniqueResult();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			session.close();
+		}
+
+		return u;
+	}
 
 }
