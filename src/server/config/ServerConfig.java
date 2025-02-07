@@ -2,7 +2,7 @@ package server.config;
 
 public class ServerConfig {
 	// Server
-	public static final String HOST_NAME = "172.17.176.1";
+	public static final String HOST_NAME = "10.5.104.63";
 	public static final int PORT = 3000;
 
 	// SMTP

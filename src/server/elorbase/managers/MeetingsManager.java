@@ -31,14 +31,15 @@ public class MeetingsManager {
 		try {
 			session = sesion.openSession();
 			int currentWeek = DateUtil.getCurrentWeek();
-			int today = DateUtil.getCurrentDay();
+			//int today = DateUtil.getCurrentDay();
+			//System.out.println("Día: " + today + " Semana: " + currentWeek);
 			//int currentWeek = 1;
 
 			String hql = DBQueries.MEETINGS_BY_TEACHER;
 			Query<Meeting> q = session.createQuery(hql, Meeting.class);
 			q.setParameter("id", id);
 			q.setParameter("currentWeek", currentWeek);
-			q.setParameter("currentDay", today);
+			//q.setParameter("currentDay", today);
 			List<Meeting> filas = q.list();
 
 			if (filas.size() > 0) {
