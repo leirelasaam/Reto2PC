@@ -1,46 +1,58 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Generated 18 ene 2025, 9:48:26 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-    <class catalog="laravel" name="server.elorbase.entities.Module" optimistic-lock="none" table="modules">
-        <id name="id" type="java.lang.Long">
-            <column name="id"/>
-            <generator class="identity"/>
-        </id>
-        <many-to-one class="server.elorbase.entities.Cycle" fetch="select" name="cycle">
-            <column name="cycle_id" not-null="true"/>
-        </many-to-one>
-        <many-to-one class="server.elorbase.entities.User" fetch="select" name="user">
-            <column name="user_id"/>
-        </many-to-one>
-        <property name="code" type="string">
-            <column length="10" name="code" not-null="true" unique="true"/>
-        </property>
-        <property name="name" type="string">
-            <column length="100" name="name" not-null="true"/>
-        </property>
-        <property name="hours" type="int">
-            <column name="hours" not-null="true"/>
-        </property>
-        <property name="course" type="byte">
-            <column name="course" not-null="true"/>
-        </property>
-        <property name="createdAt" type="timestamp">
-            <column length="19" name="created_at"/>
-        </property>
-        <property name="updatedAt" type="timestamp">
-            <column length="19" name="updated_at"/>
-        </property>
-        <set fetch="select" inverse="true" lazy="true" name="enrollments" table="enrollments">
-            <key>
-                <column name="module_id" not-null="true"/>
-            </key>
-            <one-to-many class="server.elorbase.entities.Enrollment"/>
-        </set>
-        <set fetch="select" inverse="true" lazy="true" name="schedules" table="schedules">
-            <key>
-                <column name="module_id" not-null="true"/>
-            </key>
-            <one-to-many class="server.elorbase.entities.Schedule"/>
-        </set>
-    </class>
+	<class catalog="laravel" name="server.elorbase.entities.Module"
+		optimistic-lock="none" table="modules">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="identity" />
+		</id>
+		<many-to-one class="server.elorbase.entities.Cycle"
+			fetch="select" name="cycle">
+			<column name="cycle_id" not-null="true" />
+		</many-to-one>
+		<many-to-one class="server.elorbase.entities.User"
+			fetch="select" name="user">
+			<column name="user_id" />
+		</many-to-one>
+		<property name="code" type="string">
+			<column length="10" name="code" not-null="true" unique="true" />
+		</property>
+		<property name="name" type="string">
+			<column length="100" name="name" not-null="true" />
+		</property>
+		<property name="hours" type="int">
+			<column name="hours" not-null="true" />
+		</property>
+		<property name="course" type="byte">
+			<column name="course" not-null="true" />
+		</property>
+		<property name="createdAt" type="timestamp">
+			<column length="19" name="created_at" />
+		</property>
+		<property name="updatedAt" type="timestamp">
+			<column length="19" name="updated_at" />
+		</property>
+		<set fetch="select" inverse="true" lazy="true" name="enrollments"
+			table="enrollments">
+			<key>
+				<column name="module_id" not-null="true" />
+			</key>
+			<one-to-many class="server.elorbase.entities.Enrollment" />
+		</set>
+		<set fetch="select" inverse="true" lazy="true" name="schedules"
+			table="schedules">
+			<key>
+				<column name="module_id" not-null="true" />
+			</key>
+			<one-to-many class="server.elorbase.entities.Schedule" />
+		</set>
+		<set fetch="select" inverse="true" lazy="true" name="documents"
+			table="documents">
+			<key>
+				<column name="module_id" not-null="true" />
+			</key>
+			<one-to-many class="server.elorbase.entities.Document" />
+		</set>
+	</class>
 </hibernate-mapping>
