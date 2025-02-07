@@ -1,5 +1,8 @@
 package server.config;
 
+/**
+ * Clase que contiene variables relacionadas con la configuración del servidor.
+ */
 public class ServerConfig {
 	// Server
 	public static final String HOST_NAME = "10.5.104.63";

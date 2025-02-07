@@ -10,28 +10,21 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Base64;
-
 import javax.crypto.SecretKey;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
-
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
-
 import com.google.gson.JsonObject;
-
 import server.eloradmin.config.Events;
 import server.eloradmin.model.DefaultMessages;
 import server.eloradmin.model.MessageInput;
 import server.eloradmin.model.MessageOutput;
-import server.elorbase.managers.MeetingManager;
 import server.elorbase.managers.SchedulesManager;
 import server.elorbase.managers.UsersManager;
-//import server.elorbase.dtos.ScheduleDTO;
 import server.elorbase.managers.CoursesManager;
 import server.elorbase.managers.DocumentsManager;
 import server.elorbase.managers.MeetingsManager;
@@ -51,7 +44,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-
 
 /**
  * Server control main configuration class
@@ -77,18 +69,11 @@ public class SocketIOModule {
 
 		// Custom events
 		server.addEventListener(Events.ON_LOGIN.value, MessageInput.class, this.login());
-		server.addEventListener(Events.ON_LOGOUT.value, MessageInput.class, this.logout());
 		server.addEventListener(Events.ON_GET_ALL_USERS.value, MessageInput.class, this.getUsersByRole());
 		server.addEventListener(Events.ON_RESET_PASS_EMAIL.value, MessageInput.class, this.sendResetPassEmail());
 		server.addEventListener(Events.ON_TEACHER_SCHEDULE.value, MessageInput.class, this.getTeacherSchedule());
-	    //Registro - Guardar datos actualizados del usuario en la BBDD
-	    server.addEventListener(Events.ON_REGISTER_UPDATE.value, MessageInput.class, this.saveUpdatedSignUpData());
-
-	    //server.addEventListener(Events.ON_REGISTER_INFO_ANSWER.value, MessageInput.class, this.sendResetPassEmail());
-	    //server.addEventListener(Events.ON_REGISTER_UPDATE_ANSWER.value, MessageInput.class, this.sendResetPassEmail());
-		//server.addEventListener(Events.ON_STUDENT_SCHEDULE.value, MessageInput.class, this.getStudentSchedule());
+		server.addEventListener(Events.ON_REGISTER_UPDATE.value, MessageInput.class, this.saveUpdatedSignUpData());
 		server.addEventListener(Events.ON_CREATE_MEETING.value, MessageInput.class, this.createMeeting());
-
 		server.addEventListener(Events.ON_STUDENT_DOCUMENTS.value, MessageInput.class, this.getStudentDocuments());
 		server.addEventListener(Events.ON_UPDATE_PASS.value, MessageInput.class, this.updatePass());
 		server.addEventListener(Events.ON_STUDENT_SCHEDULE.value, MessageInput.class, this.getStudentSchedule());
@@ -120,7 +105,14 @@ public class SocketIOModule {
 	}
 
 	// Custom events
-
+	/**
+	 * Gestiona el login, donde recibe el email o el DNI junto con la contraseña y
+	 * se comprueba si hay coincidencias en la base de datos.
+	 * 
+	 * Emite el evento ON_LOGIN_ANSWER
+	 * 
+	 * @return
+	 */
 	private DataListener<MessageInput> login() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -186,27 +178,14 @@ public class SocketIOModule {
 		});
 	}
 
-	// NO FUNCIONAL, HAY QUE HACERLO
-	private DataListener<MessageInput> logout() {
-		return ((client, data, ackSender) -> {
-			// This time, we simply write the message in data
-			logger.info("Client wants to logout");
-
-			// The JSON message from MessageInput
-			String message = data.getMessage();
-
-			// We parse the JSON into an JsonObject
-			// The JSON should be something like this: {"message": "patata"}
-			Gson gson = new Gson();
-			JsonObject jsonObject = gson.fromJson(message, JsonObject.class);
-			String userName = jsonObject.get("message").getAsString();
-
-			// We do something on dataBase? ¯_(ツ)_/¯
-
-			logger.info("Loged out");
-		});
-	}
-
+	/**
+	 * Gestiona el reseteo de contraseña, donde recibe el correo del usuario. Busca
+	 * el usuario en la base de datos y si existe se envía.
+	 * 
+	 * Emite el evento ON_RESET_PASS_EMAIL_ANSWER
+	 * 
+	 * @return
+	 */
 	private DataListener<MessageInput> sendResetPassEmail() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -251,6 +230,15 @@ public class SocketIOModule {
 		});
 	}
 
+	/**
+	 * Gestiona el cambio de contraseña, donde recibe el email, la contraseña
+	 * antigua y la contraseña nueva. Busca el usuario en la base de datos y realiza
+	 * la actualización.
+	 * 
+	 * Emite el evento ON_UPDATE_PASS_ANSWER
+	 * 
+	 * @return
+	 */
 	private DataListener<MessageInput> updatePass() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -302,6 +290,14 @@ public class SocketIOModule {
 		});
 	}
 
+	/**
+	 * Gestiona el horario semanal del profesor, donde recibe el id y la semana.
+	 * Ejecuta un procedimiento almacenado en la base de datos.
+	 * 
+	 * Emite el evento ON_TEACHER_SCHEDULE_ANSWER
+	 * 
+	 * @return
+	 */
 	private DataListener<MessageInput> getTeacherSchedule() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -346,6 +342,14 @@ public class SocketIOModule {
 		});
 	}
 
+	/**
+	 * Gestiona el horario semanal del estudiante, donde recibe el id del usuario.
+	 * Ejecuta un procedimiento almacenado en la base de datos.
+	 * 
+	 * Emite el evento ON_STUDENT_SCHEDULE_ANSWER
+	 * 
+	 * @return
+	 */
 	private DataListener<MessageInput> getStudentSchedule() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -383,6 +387,15 @@ public class SocketIOModule {
 		});
 	}
 
+	/**
+	 * Gestiona el envío de documentos de los módulos en los que está matriculado el
+	 * estudiante, donde recibe el id del usuario. Los documentos están almacenados
+	 * en elordocs.
+	 * 
+	 * Emite el evento ON_STUDENT_DOCUMENTS_ANSWER
+	 * 
+	 * @return
+	 */
 	private DataListener<MessageInput> getStudentDocuments() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -423,6 +436,14 @@ public class SocketIOModule {
 		});
 	}
 
+	/**
+	 * Gestiona los cursos externos del centro. Obtiene todos los cursos de la base
+	 * de datos.
+	 * 
+	 * Emite el evento ON_STUDENT_COURSES_ANSWER
+	 * 
+	 * @return
+	 */
 	private DataListener<MessageInput> getAllCourses() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -452,86 +473,105 @@ public class SocketIOModule {
 			}
 		});
 	}
-	
-	//Funcion de prueba
+
+	/**
+	 * Gestiona el registro de un usuario, actualizando campos correspondientes en
+	 * la base de datos. Recibe los datos del usuario, entre los cuales está su id
+	 * para poder realizar el UPDATE.
+	 * 
+	 * Emite el evento ON_REGISTER_UPDATE_ANSWER
+	 * 
+	 * @return
+	 */
 	private DataListener<MessageInput> saveUpdatedSignUpData() {
-	    return ((client, data, ackSender) -> {
-	        String ip = client.getRemoteAddress().toString();
-	        logger.info("[Client = " + ip + "] Received event: ON_REGISTER_UPDATE");
+		return ((client, data, ackSender) -> {
+			String ip = client.getRemoteAddress().toString();
+			logger.info("[Client = " + ip + "] Received event: ON_REGISTER_UPDATE");
 
-	        try {
-	            if (data == null || data.getMessage() == null) {
-	                logger.error("[Client = " + ip + "] ERROR: Received null message");
-	                return;
-	            }
+			try {
+				if (data == null || data.getMessage() == null) {
+					logger.error("[Client = " + ip + "] ERROR: Received null message");
+					return;
+				}
 
-	            String clientMsg = data.getMessage();
-	            logger.debug("[Client = " + ip + "] Raw encrypted message: " + clientMsg);
-	            
-	            String decryptedMsg = AESUtil.decrypt(clientMsg, key);
-	            logger.debug("[Client = " + ip + "] Decrypted message: " + decryptedMsg);
-	            
-	            
-	         // Convertir el JSON a un objeto JsonObject
-	            JsonObject jsonObject = JsonParser.parseString(decryptedMsg).getAsJsonObject();
-	            
-	            User updatedUser = new User();
-				
-	            //Datps extraidos del usuario actualizado
-	            Long id = jsonObject.has("id") ? Long.parseLong(jsonObject.get("id").getAsString()) : null;
-	            String name = jsonObject.has("name") ? jsonObject.get("name").getAsString() : null;
-	            String email = jsonObject.has("email") ? jsonObject.get("email").getAsString() : null;
-	            String password = jsonObject.has("password") ? jsonObject.get("password").getAsString() : null;
-	            String lastname = jsonObject.has("lastname") ? jsonObject.get("lastname").getAsString() : null;
-	            String pin = jsonObject.has("pin") ? jsonObject.get("pin").getAsString() : null;
-	            String address = jsonObject.has("address") ? jsonObject.get("address").getAsString() : null;
-	            String phone1 = jsonObject.has("phone1") ? jsonObject.get("phone1").getAsString() : null;
-	            String phone2 = jsonObject.has("phone2") ? jsonObject.get("phone2").getAsString() : null;
-	            boolean registered = jsonObject.has("registered") && jsonObject.get("registered").getAsBoolean();
+				String clientMsg = data.getMessage();
+				logger.debug("[Client = " + ip + "] Raw encrypted message: " + clientMsg);
 
-	            byte[] photo = jsonObject.has("photo") ? Base64.getDecoder().decode(jsonObject.get("photo").getAsString()) : null;
+				String decryptedMsg = AESUtil.decrypt(clientMsg, key);
+				logger.debug("[Client = " + ip + "] Decrypted message: " + decryptedMsg);
 
-	            updatedUser.setId(id); 
-	            updatedUser.setName(name);
-	            updatedUser.setEmail(email);
-	            updatedUser.setPassword(BcryptUtil.getHashedPass(password));
-	            updatedUser.setLastname(lastname); 
-	            updatedUser.setPin(pin);
-	            updatedUser.setAddress(address); 
-	            updatedUser.setPhone1(phone1);
-	            updatedUser.setPhone2(phone2); 
-	            updatedUser.setRegistered(registered); 
-	            updatedUser.setPhoto(photo);
-	            
-	            // Ahora hay que tomar el id e ir actualizando los datos del usuario en la base de datos
-	            UsersManager um = new UsersManager(sesion);
-	            boolean updated = um.updateUser(updatedUser);
-	            
-	            //um.updatePasswordByUser(updatedUser, password);
-	            
-	            if (updated) {
-	                // Actualización exitosa: 200 OK
-	                client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.OK);
-	                
-	                logger.debug("[Client = " + ip + "] User: "+ id + ", " + name + " updated successfully.");
-	                
-	                //Devolver un evento con que se ha guardado todo bien en la base de datos.
-	                
-	            } else {
-	                // Fallo en la actualización: 500 INTERNAL SERVER ERROR
-	                client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-	                logger.debug("[Client = " + ip + "] Error updating user in the database.");
-	            }
-	            
-	        } catch (Exception e) {
-	            logger.error("[Client = " + ip + "] Error while decrypting: " + e.getMessage(), e);
-	            logger.error("[Client = " + ip + "] Error while processing saveUpdatedSignUpData: " + e.getMessage(), e);
-	            logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
-	            client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
-	        }
-	    });
+				// Convertir el JSON a un objeto JsonObject
+				JsonObject jsonObject = JsonParser.parseString(decryptedMsg).getAsJsonObject();
+
+				User updatedUser = new User();
+
+				// Datps extraidos del usuario actualizado
+				Long id = jsonObject.has("id") ? Long.parseLong(jsonObject.get("id").getAsString()) : null;
+				String name = jsonObject.has("name") ? jsonObject.get("name").getAsString() : null;
+				String email = jsonObject.has("email") ? jsonObject.get("email").getAsString() : null;
+				String password = jsonObject.has("password") ? jsonObject.get("password").getAsString() : null;
+				String lastname = jsonObject.has("lastname") ? jsonObject.get("lastname").getAsString() : null;
+				String pin = jsonObject.has("pin") ? jsonObject.get("pin").getAsString() : null;
+				String address = jsonObject.has("address") ? jsonObject.get("address").getAsString() : null;
+				String phone1 = jsonObject.has("phone1") ? jsonObject.get("phone1").getAsString() : null;
+				String phone2 = jsonObject.has("phone2") ? jsonObject.get("phone2").getAsString() : null;
+				boolean registered = jsonObject.has("registered") && jsonObject.get("registered").getAsBoolean();
+
+				byte[] photo = jsonObject.has("photo")
+						? Base64.getDecoder().decode(jsonObject.get("photo").getAsString())
+						: null;
+
+				updatedUser.setId(id);
+				updatedUser.setName(name);
+				updatedUser.setEmail(email);
+				updatedUser.setPassword(BcryptUtil.getHashedPass(password));
+				updatedUser.setLastname(lastname);
+				updatedUser.setPin(pin);
+				updatedUser.setAddress(address);
+				updatedUser.setPhone1(phone1);
+				updatedUser.setPhone2(phone2);
+				updatedUser.setRegistered(registered);
+				updatedUser.setPhoto(photo);
+
+				// Ahora hay que tomar el id e ir actualizando los datos del usuario en la base
+				// de datos
+				UsersManager um = new UsersManager(sesion);
+				boolean updated = um.updateUser(updatedUser);
+
+				// um.updatePasswordByUser(updatedUser, password);
+
+				if (updated) {
+					// Actualización exitosa: 200 OK
+					client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.OK);
+
+					logger.debug("[Client = " + ip + "] User: " + id + ", " + name + " updated successfully.");
+
+					// Devolver un evento con que se ha guardado todo bien en la base de datos.
+
+				} else {
+					// Fallo en la actualización: 500 INTERNAL SERVER ERROR
+					client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+					logger.debug("[Client = " + ip + "] Error updating user in the database.");
+				}
+
+			} catch (Exception e) {
+				logger.error("[Client = " + ip + "] Error while decrypting: " + e.getMessage(), e);
+				logger.error("[Client = " + ip + "] Error while processing saveUpdatedSignUpData: " + e.getMessage(),
+						e);
+				logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+				client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
+			}
+		});
 	}
-	
+
+	/**
+	 * Gestiona las reuniones de un profesor, donde recibe su id. Envía las
+	 * reuniones a partir de la semana actual.
+	 * 
+	 * Emite el evento ON_ALL_MEETINGS_ANSWER
+	 * 
+	 * @return
+	 */
 	private DataListener<MessageInput> getTeacherMeetings() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -572,6 +612,17 @@ public class SocketIOModule {
 		});
 	}
 
+	/**
+	 * Actualiza el estado de la reunión o el estado del participante. Recibe el id
+	 * del usuario, el id de la reunión y el estado nuevo.
+	 * 
+	 * Emite el evento ON_MEETING_STATUS_UPDATE_ANSWER para ambos casos, aunque el
+	 * evento origen al que responde esta función sea diferente
+	 * 
+	 * @param isParticipant Boolean que indica si se debe actualizar el estado del
+	 *                      participante o de la reunión
+	 * @return
+	 */
 	private DataListener<MessageInput> updateStatus(boolean isParticipant) {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -624,24 +675,13 @@ public class SocketIOModule {
 		});
 	}
 
-	// Server control
-	public void start() {
-		if (!isServerRunning) {
-			isServerRunning = true;
-			server.start();
-			logger.info("Server started");
-		} else {
-			logger.warn("Server already running");
-		}
-	}
-
-	public void stop() {
-		server.stop();
-		// Cerrar la sesión bbdd
-		sesion.close();
-		logger.info("Server stopped");
-	}
-
+	/**
+	 * Devuelve los usuarios por el rol que recibe.
+	 * 
+	 * Emite el evento ON_GET_ALL_USERS_ANSWER
+	 * 
+	 * @return
+	 */
 	private DataListener<MessageInput> getUsersByRole() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -692,6 +732,14 @@ public class SocketIOModule {
 		});
 	}
 
+	/**
+	 * Gestiona la creación de una reunión, donde recibe la información
+	 * correspondiente para ello.
+	 * 
+	 * Emite el evento ON_CREATE_MEETING_ANSWER
+	 * 
+	 * @return
+	 */
 	private DataListener<MessageInput> createMeeting() {
 		return ((client, data, ackSender) -> {
 			String ip = client.getRemoteAddress().toString();
@@ -753,7 +801,7 @@ public class SocketIOModule {
 				// int organizerId = jsonObject.get("organizerId").getAsInt();
 
 				// Create a new meeting using MeetingManager
-				MeetingManager meetingManager = new MeetingManager(sesion);
+				MeetingsManager meetingManager = new MeetingsManager(sesion);
 				Meeting meetingCreada = meetingManager.createMeeting(meetingAInsertar);
 
 				MessageOutput msgOut;
@@ -779,5 +827,23 @@ public class SocketIOModule {
 				client.sendEvent(Events.ON_CREATE_MEETING_ANSWER.value, encryptedMsg);
 			}
 		});
+	}
+
+	// Server control
+	public void start() {
+		if (!isServerRunning) {
+			isServerRunning = true;
+			server.start();
+			logger.info("Server started");
+		} else {
+			logger.warn("Server already running");
+		}
+	}
+
+	public void stop() {
+		server.stop();
+		// Cerrar la sesión bbdd
+		sesion.close();
+		logger.info("Server stopped");
 	}
 }

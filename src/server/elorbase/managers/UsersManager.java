@@ -74,6 +74,7 @@ public class UsersManager {
 				logger.info("Contraseña restablecida correctamente para el usuario: " + user.getEmail());
 			}
 
+			transaction.commit();
 		} catch (Exception e) {
 			if (transaction != null) {
 				transaction.rollback();

@@ -161,5 +161,38 @@ public class MeetingsManager {
 		
 		return isUpdated;
 	}
+	
+	public Meeting createMeeting(Meeting meeting) {
+
+		// Abrir una nueva sesión de Hibernate
+		Session session = sesion.openSession();
+		Transaction transaction = null;
+
+		try {
+			transaction = session.beginTransaction();
+
+			// Guardar la reunión en la base de datos
+			session.persist(meeting);
+
+			ParticipantsManager pm = new ParticipantsManager(sesion);
+
+			for (Participant participant : meeting.getParticipants()) {
+				participant.setMeeting(meeting);
+				pm.insertParticipant(participant);
+			}
+
+			// Confirmar la transacción
+			transaction.commit();
+		} catch (Exception e) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+			e.printStackTrace();
+		} finally {
+			session.close();
+		}
+		
+		return meeting;
+	}
 
 }

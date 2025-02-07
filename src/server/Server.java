@@ -9,6 +9,9 @@ import org.apache.log4j.Logger;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOServer;
 
+/**
+ * Clase que arranca el servidor.
+ */
 public class Server {
 	private static final Logger logger = Logger.getLogger(Server.class);
 
@@ -19,9 +22,6 @@ public class Server {
 		config.setPort(ServerConfig.PORT);
 	
 		try {
-			// Buscar IP local y establecerla
-			//String hostName = InetAddress.getLocalHost().getHostAddress();
-			//config.setHostname(hostName);
 			logger.info("Hostname: " + config.getHostname());
 			
 			// Probar encriptación
@@ -33,7 +33,7 @@ public class Server {
 			if (secret.equals(decrypted)) {
 				logger.info("AES system working.");
 				
-				// We start the server
+				// Arrancar el servidor
 				SocketIOServer server = new SocketIOServer(config);
 				SocketIOModule module = new SocketIOModule(server, key);
 				module.start();
