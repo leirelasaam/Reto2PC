@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generated 27 ene 2025, 19:50:40 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class catalog="laravel" name="server.elorbase.entities.Course" optimistic-lock="none" table="courses">
+        <id name="id" type="java.lang.Long">
+            <column name="id"/>
+            <generator class="identity"/>
+        </id>
+        <property name="name" type="string">
+            <column length="50" name="name" not-null="true"/>
+        </property>
+        <property name="date" type="date">
+            <column length="10" name="date" not-null="true"/>
+        </property>
+        <property name="contact" type="string">
+            <column length="100" name="contact" not-null="true"/>
+        </property>
+        <property name="description" type="string">
+            <column length="200" name="description" not-null="true"/>
+        </property>
+        <property name="schedule" type="string">
+            <column length="50" name="schedule" not-null="true"/>
+        </property>
+        <property name="latitude" type="float">
+            <column name="latitude" not-null="true" precision="12"/>
+        </property>
+        <property name="longitude" type="float">
+            <column name="longitude" not-null="true" precision="12"/>
+        </property>
+        <property name="createdAt" type="timestamp">
+            <column length="19" name="created_at"/>
+        </property>
+        <property name="updatedAt" type="timestamp">
+            <column length="19" name="updated_at"/>
+        </property>
+    </class>
+</hibernate-mapping>

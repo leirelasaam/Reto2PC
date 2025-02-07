@@ -18,7 +18,8 @@ import jakarta.persistence.OneToMany;
  */
 public class Meeting implements java.io.Serializable {
 
-	private static final long serialVersionUID = -3278204506631909326L;
+	private static final long serialVersionUID = 1L;
+
 	private Long id;
 	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

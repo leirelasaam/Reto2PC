@@ -6,14 +6,14 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import jakarta.persistence.JoinColumn;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 
@@ -27,12 +27,10 @@ public class User implements java.io.Serializable {
 	
 	@Id
 	private Long id;
-	
 	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 	private Role role;
-	
 	private String name;
 	private String email;
 	private Timestamp emailVerifiedAt;
