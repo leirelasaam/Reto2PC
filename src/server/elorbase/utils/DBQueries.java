@@ -19,4 +19,6 @@ public class DBQueries {
 	public static final String PARTICIPANTS_BY_MEETING = "From Participant p JOIN FETCH p.meeting m JOIN FETCH p.user u JOIN FETCH u.role WHERE p.meeting.id = :id ORDER BY u.lastname ASC, u.name ASC";
 	public static final String ALL_COURSES = "FROM Course";
 	public static final String TEACHER_SCHEDULE_PROCEDURE = "CALL TeacherSchedule(:teacher_id, :selected_week)";
+	public static final String USER_BY_ID = "FROM " + U + " as U JOIN FETCH U.role WHERE U.id = :id";
+
 }
