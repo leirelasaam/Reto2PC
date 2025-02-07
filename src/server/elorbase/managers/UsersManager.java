@@ -29,7 +29,7 @@ public class UsersManager {
 			session = sesion.openSession();
 			String hql = DBQueries.USER_BY_EMAIL_OR_PIN;
 			Query<User> q = session.createQuery(hql, User.class);
-			q.setParameter("email", login);
+			q.setParameter("email", login.toLowerCase());
 			q.setParameter("pin", login.toUpperCase());
 			q.setMaxResults(1);
 
