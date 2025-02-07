@@ -510,6 +510,7 @@ public class SocketIOModule {
 	            if (updated) {
 	                // Actualización exitosa: 200 OK
 	                client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.OK);
+	                
 	                logger.debug("[Client = " + ip + "] User: "+ id + ", " + name + " updated successfully.");
 	                
 	                //Devolver un evento con que se ha guardado todo bien en la base de datos.
