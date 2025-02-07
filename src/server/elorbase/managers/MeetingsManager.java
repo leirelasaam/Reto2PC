@@ -174,11 +174,9 @@ public class MeetingsManager {
 			// Guardar la reunión en la base de datos
 			session.persist(meeting);
 
-			ParticipantsManager pm = new ParticipantsManager(sesion);
-
 			for (Participant participant : meeting.getParticipants()) {
 				participant.setMeeting(meeting);
-				pm.insertParticipant(participant);
+				session.persist(participant);
 			}
 
 			// Confirmar la transacción
