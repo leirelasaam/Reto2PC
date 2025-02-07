@@ -492,7 +492,7 @@ public class SocketIOModule {
 	            updatedUser.setId(id); 
 	            updatedUser.setName(name);
 	            updatedUser.setEmail(email);
-	            //updatedUser.setPassword(password);
+	            updatedUser.setPassword(BcryptUtil.getHashedPass(password));
 	            updatedUser.setLastname(lastname); 
 	            updatedUser.setPin(pin);
 	            updatedUser.setAddress(address); 
@@ -505,11 +505,12 @@ public class SocketIOModule {
 	            UsersManager um = new UsersManager(sesion);
 	            boolean updated = um.updateUser(updatedUser);
 	            
-	            um.updatePasswordByUser(updatedUser, password);
+	            //um.updatePasswordByUser(updatedUser, password);
 	            
 	            if (updated) {
 	                // Actualización exitosa: 200 OK
 	                client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.OK);
+	                
 	                logger.debug("[Client = " + ip + "] User: "+ id + ", " + name + " updated successfully.");
 	                
 	                //Devolver un evento con que se ha guardado todo bien en la base de datos.
@@ -523,8 +524,8 @@ public class SocketIOModule {
 	        } catch (Exception e) {
 	            logger.error("[Client = " + ip + "] Error while decrypting: " + e.getMessage(), e);
 	            logger.error("[Client = " + ip + "] Error while processing saveUpdatedSignUpData: " + e.getMessage(), e);
-	            client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
 	            logger.debug("[Client = " + ip + "] Sending: " + DefaultMessages.INTERNAL_SERVER.toString());
+	            client.sendEvent(Events.ON_REGISTER_UPDATE_ANSWER.value, DefaultMessages.INTERNAL_SERVER);
 	        }
 	    });
 	}
