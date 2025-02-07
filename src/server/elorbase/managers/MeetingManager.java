@@ -19,7 +19,7 @@ public class MeetingManager {
 
 	// Método para CREAR NUEVA REUNIÓN
 
-	public Meeting createMeeting(Meeting meeting, List<Participant> participants) {
+	public Meeting createMeeting(Meeting meeting) {
 
 		// Abrir una nueva sesión de Hibernate
 		Session session = sesion.openSession();
@@ -28,17 +28,14 @@ public class MeetingManager {
 		try {
 			transaction = session.beginTransaction();
 
-			meeting.setStatus("pendiente");
-
 			// Guardar la reunión en la base de datos
 			session.persist(meeting);
 
 			ParticipantsManager pm = new ParticipantsManager(sesion);
 
-			for (Participant participant : participants) {
+			for (Participant participant : meeting.getParticipants()) {
 				participant.setMeeting(meeting);
-				participant.setStatus("pendiente");
-				pm.createParticipants(participant);
+				pm.createParticipants(participant, session);
 			}
 
 			// Confirmar la transacción
