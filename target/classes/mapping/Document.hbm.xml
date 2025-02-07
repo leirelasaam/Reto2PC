@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generated 27 ene 2025, 20:21:03 by Hibernate Tools 6.5.1.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class catalog="laravel" name="server.elorbase.entities.Document" optimistic-lock="none" table="documents">
+        <id name="id" type="java.lang.Long">
+            <column name="id"/>
+            <generator class="identity"/>
+        </id>
+        <many-to-one class="server.elorbase.entities.Module" fetch="select" name="module">
+            <column name="module_id" not-null="true"/>
+        </many-to-one>
+        <property name="name" type="string">
+            <column length="50" name="name" not-null="true"/>
+        </property>
+        <property name="extension" type="string">
+            <column length="10" name="extension" not-null="true"/>
+        </property>
+        <property name="route" type="string">
+            <column length="100" name="route" not-null="true"/>
+        </property>
+        <property name="createdAt" type="timestamp">
+            <column length="19" name="created_at"/>
+        </property>
+        <property name="updatedAt" type="timestamp">
+            <column length="19" name="updated_at"/>
+        </property>
+    </class>
+</hibernate-mapping>
