@@ -1,5 +1,6 @@
 package server.elorbase.managers;
 
+import java.util.Base64;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -130,13 +131,49 @@ public class UsersManager {
 			session = sesion.openSession();
 			transaction = session.beginTransaction();
 
+			// Actualizar los atributos del usuario
 			if (updatedUser != null) {
-				session.merge(updatedUser);
-				transaction.commit();
-				logger.info("Usuario actualizado correctamente: " + updatedUser.getEmail());
-				isUpdated = true;
+				// Recuperar el usuario de la base de datos
+	            User existingUser = session.get(User.class, updatedUser.getId());
+				if (existingUser != null) {
+					if (updatedUser.getName() != null) {
+	                    existingUser.setName(updatedUser.getName());
+	                }
+	                if (updatedUser.getEmail() != null) {
+	                    existingUser.setEmail(updatedUser.getEmail());
+	                }
+	                if (updatedUser.getPassword() != null) {
+	                    existingUser.setPassword(updatedUser.getPassword());
+	                }
+	                if (updatedUser.getLastname() != null) {
+	                    existingUser.setLastname(updatedUser.getLastname());
+	                }
+	                if (updatedUser.getPin() != null) {
+	                    existingUser.setPin(updatedUser.getPin());
+	                }
+	                if (updatedUser.getAddress() != null) {
+	                    existingUser.setAddress(updatedUser.getAddress());
+	                }
+	                if (updatedUser.getPhone1() != null) {
+	                    existingUser.setPhone1(updatedUser.getPhone1());
+	                }
+	                if (updatedUser.getPhone2() != null) {
+	                    existingUser.setPhone2(updatedUser.getPhone2());
+	                }
+	                if (updatedUser.getPhoto() != null) {
+	                    existingUser.setPhoto(updatedUser.getPhoto());
+	                }
+
+	                existingUser.setRegistered(true);
+
+					transaction.commit();
+					logger.info("Usuario actualizado correctamente: " + updatedUser.getEmail());
+					isUpdated = true;
+				} else {
+					logger.error("No se ha encontrado el usuario.");
+				}
 			} else {
-				logger.info("El usuario proporcionado es nulo. No se puede actualizar.");
+				logger.error("El usuario proporcionado es nulo. No se puede actualizar.");
 			}
 		} catch (Exception e) {
 			if (transaction != null) {

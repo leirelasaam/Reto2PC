@@ -548,8 +548,7 @@ public class SocketIOModule {
 				String pin = jsonObject.has("pin") ? jsonObject.get("pin").getAsString() : null;
 				String address = jsonObject.has("address") ? jsonObject.get("address").getAsString() : null;
 				String phone1 = jsonObject.has("phone1") ? jsonObject.get("phone1").getAsString() : null;
-				String phone2 = jsonObject.has("phone2") ? jsonObject.get("phone2").getAsString() : null;
-				boolean registered = jsonObject.has("registered") && jsonObject.get("registered").getAsBoolean();
+				String phone2 = jsonObject.has("phone2") && !jsonObject.get("phone2").getAsString().isBlank() ? jsonObject.get("phone2").getAsString() : null;
 
 				byte[] photo = jsonObject.has("photo")
 						? Base64.getDecoder().decode(jsonObject.get("photo").getAsString())
@@ -558,21 +557,18 @@ public class SocketIOModule {
 				updatedUser.setId(id);
 				updatedUser.setName(name);
 				updatedUser.setEmail(email);
+				// Encriptar la contraseña
 				updatedUser.setPassword(BcryptUtil.getHashedPass(password));
 				updatedUser.setLastname(lastname);
 				updatedUser.setPin(pin);
 				updatedUser.setAddress(address);
 				updatedUser.setPhone1(phone1);
 				updatedUser.setPhone2(phone2);
-				updatedUser.setRegistered(registered);
 				updatedUser.setPhoto(photo);
 
-				// Ahora hay que tomar el id e ir actualizando los datos del usuario en la base
-				// de datos
+				// Actualizar los datos del usuario
 				UsersManager um = new UsersManager(sesion);
 				boolean updated = um.updateUser(updatedUser);
-
-				// um.updatePasswordByUser(updatedUser, password);
 
 				if (updated) {
 					// Actualización exitosa: 200 OK
