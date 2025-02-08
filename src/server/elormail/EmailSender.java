@@ -1,7 +1,11 @@
 package server.elormail;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Properties;
 
+import javax.activation.DataHandler;
+import javax.activation.FileDataSource;
 import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -32,7 +36,7 @@ public class EmailSender {
 		this.password = ServerConfig.SMTP_PASS;
 	}
 
-	public void sendEmail(String toEmail, String subject, String body) throws MessagingException {
+	public void sendEmail(String toEmail, String subject, String body, ArrayList<String> attachments) throws MessagingException {
 		// Indicar las propiedades del servidor de correo
 		Properties properties = new Properties();
 		// Habilitar SSL
@@ -63,6 +67,21 @@ public class EmailSender {
 		mimeBodyPart.setContent(body, "text/html");
 		multipart.addBodyPart(mimeBodyPart);
 		message.setContent(multipart);
+		
+		// Añadir adjuntos
+		if (attachments != null && attachments.size() > 0) {
+	        for (String filePath : attachments) {
+	        	try {
+	        		MimeBodyPart attachmentPart = new MimeBodyPart();
+		            FileDataSource source = new FileDataSource(filePath);
+		            attachmentPart.setDataHandler(new DataHandler(source));
+		            attachmentPart.setFileName(new File(filePath).getName());
+		            multipart.addBodyPart(attachmentPart);
+	        	} catch (Exception e) {
+	        		logger.error(e.getMessage());
+	        	}
+	        }
+		}
 
 		// Enviar el mensaje
 		Transport.send(message);

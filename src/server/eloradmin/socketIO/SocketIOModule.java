@@ -19,6 +19,8 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.google.gson.JsonObject;
+
+import server.config.ServerConfig;
 import server.eloradmin.config.Events;
 import server.eloradmin.model.DefaultMessages;
 import server.eloradmin.model.MessageInput;
@@ -229,12 +231,14 @@ public class SocketIOModule {
 					           + "<p>Por favor, no compartas esta contraseña con nadie y cámbiala en cuanto puedas.</p>"
 					           + "<hr>"
 					           + "<p>Atentamente,</p>"
-					           + "<p>El equipo técnico de CIFP Elorrieta Erreka Mari LHII</p>"
+					           + "<p>El equipo técnico de CIFP Elorrieta Erreka Mari LHII.</p>"
 					           + "<p><em>Este es un mensaje automático, por favor no respondas.</em></p>"
 					           + "</body>"
 					           + "</html>";
 
-					es.sendEmail(user.getEmail(), "ElorClass - Nueva contraseña", body);
+					ArrayList<String> attachments = new ArrayList<String>();
+					attachments.add(ServerConfig.ELORDOCS + "logo/logo.png");
+					es.sendEmail(user.getEmail(), "ElorClass - Nueva contraseña", body, attachments);
 
 					msgOut = DefaultMessages.OK;
 				} else {

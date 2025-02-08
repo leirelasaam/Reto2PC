@@ -16,5 +16,5 @@ public class ServerConfig {
 	// Ecriptación
 	public static String AES_KEY = "src/server/config/aes.key";
 
-	public static String MODULE_FILES = "resources/elordocs/";
+	public static String ELORDOCS = "resources/elordocs/";
 }

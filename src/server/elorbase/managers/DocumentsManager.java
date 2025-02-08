@@ -40,7 +40,7 @@ public class DocumentsManager {
 					if (documents == null)
 						documents = new ArrayList<Document>();
 					
-					String path = ServerConfig.MODULE_FILES + fila.getRoute() + "." + fila.getExtension();
+					String path = ServerConfig.ELORDOCS + fila.getRoute() + "." + fila.getExtension();
 					File file = new File(path);
 					byte[] fileContent = Files.readAllBytes(file.toPath());
 
