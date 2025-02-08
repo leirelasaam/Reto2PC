@@ -211,10 +211,10 @@ public class SocketIOModule {
 
 				MessageOutput msgOut = null;
 				if (user != null) {
-					EmailSender es = new EmailSender();
 					@SuppressWarnings("deprecation")
 					String password = RandomStringUtils.randomAlphanumeric(10);
-					um.updatePasswordByUser(user, password);
+					
+					EmailSender es = new EmailSender();
 					
 					String body = "<html>"
 					           + "<head><style>"
@@ -238,7 +238,15 @@ public class SocketIOModule {
 
 					ArrayList<String> attachments = new ArrayList<String>();
 					attachments.add(ServerConfig.ELORDOCS + "logo/logo.png");
-					es.sendEmail(user.getEmail(), "ElorClass - Nueva contraseña", body, attachments);
+					
+					ArrayList<String> toEmails = new ArrayList<String>();
+					toEmails.add(user.getEmail());
+					
+					String subject = "ElorClass - Nueva contraseña";
+					
+					es.sendEmail(toEmails, subject, body, attachments);
+					
+					um.updatePasswordByUser(user, password);
 
 					msgOut = DefaultMessages.OK;
 				} else {
