@@ -213,7 +213,26 @@ public class SocketIOModule {
 					@SuppressWarnings("deprecation")
 					String password = RandomStringUtils.randomAlphanumeric(10);
 					um.updatePasswordByUser(user, password);
-					es.sendEmail(user.getEmail(), "ElorClass - Nueva contraseña", "Contraseña nueva: " + password);
+					
+					String body = "<html>"
+					           + "<head><style>"
+					           + "body {font-family: Verdana, sans-serif;}"
+					           + "h1 {color: #211261; font-size: 22px}"
+					           + "p {font-size: 14px}"
+					           + "em {font-size: 12px; color: #3cb4e5}"
+					           + "</style></head>"
+					           + "<body>"
+					           + "<h1>¡Hola!</h1>"
+					           + "<p>Has solicitado una nueva contraseña para tu cuenta en <strong>ElorClass</strong>.</p>"
+					           + "<p>Tu nueva contraseña es: <strong>" + password + "</strong></p>"
+					           + "<p>Por favor, no compartas esta contraseña con nadie y cámbiala en cuanto puedas.</p>"
+					           + "<p>¡Gracias por usar ElorClass!</p>"
+					           + "<br><p><em>Este es un mensaje automático, por favor no respondas.</em></p>"
+					           + "</body>"
+					           + "</html>";
+
+					es.sendEmail(user.getEmail(), "ElorClass - Nueva contraseña", body);
+
 					msgOut = DefaultMessages.OK;
 				} else {
 					msgOut = DefaultMessages.UNAUTHORIZED;
