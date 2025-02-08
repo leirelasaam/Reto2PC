@@ -25,9 +25,10 @@ public class DocumentsManager {
 
 	public ArrayList<Document> getDocumentsByUserId(int id) {
 		ArrayList<Document> documents = null;
-		Session session = sesion.openSession();
+		Session session = null;
 
 		try {
+			session = sesion.openSession();
 			String hql = DBQueries.DOCUMENTS_BY_STUDENT;
 			Query<Document> q = session.createQuery(hql, Document.class);
 			q.setParameter("id", id);
@@ -38,6 +39,7 @@ public class DocumentsManager {
 				for (Document fila : filas) {
 					if (documents == null)
 						documents = new ArrayList<Document>();
+					
 					String path = ServerConfig.MODULE_FILES + fila.getRoute() + "." + fila.getExtension();
 					File file = new File(path);
 					byte[] fileContent = Files.readAllBytes(file.toPath());
@@ -51,7 +53,9 @@ public class DocumentsManager {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {
-			session.close();
+			if (session != null) {
+				session.close();
+			}
 		}
 
 		return documents;

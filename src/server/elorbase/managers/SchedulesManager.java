@@ -53,7 +53,9 @@ public class SchedulesManager {
 			}
 			logger.error(e.getMessage());
 		} finally {
-			session.close();
+			if (session != null) {
+				session.close();
+			}
 		}
 		
 		return schedules;
@@ -67,7 +69,7 @@ public class SchedulesManager {
 		try {
 			transaction = session.beginTransaction();
 
-			String sql = "CALL StudentSchedule(:student_id)";
+			String sql = DBQueries.STUDENT_SCHEDULE_PROCEDURE;
 
 			NativeQuery<StudentSchedule> query = session.createNativeQuery(sql, StudentSchedule.class);
 			query.setParameter("student_id", studentId);
@@ -85,9 +87,11 @@ public class SchedulesManager {
 			if (transaction != null) {
 				transaction.rollback();
 			}
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		} finally {
-			session.close();
+			if (session != null) {
+				session.close();
+			}
 		}
 		
 		return schedules;

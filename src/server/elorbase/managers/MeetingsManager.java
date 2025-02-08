@@ -32,8 +32,6 @@ public class MeetingsManager {
 			session = sesion.openSession();
 			int currentWeek = DateUtil.getCurrentWeek();
 			//int today = DateUtil.getCurrentDay();
-			//System.out.println("Día: " + today + " Semana: " + currentWeek);
-			//int currentWeek = 1;
 
 			String hql = DBQueries.MEETINGS_BY_TEACHER;
 			Query<Meeting> q = session.createQuery(hql, Meeting.class);
@@ -55,7 +53,9 @@ public class MeetingsManager {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {
-			session.close();
+			if (session != null) {
+				session.close();
+			}
 		}
 
 		return meetings;
@@ -80,7 +80,9 @@ public class MeetingsManager {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {
-			session.close();
+			if (session != null) {
+				session.close();
+			}
 		}
 
 		return participants;
@@ -96,7 +98,7 @@ public class MeetingsManager {
 			transaction = session.beginTransaction();
 			
 			// Buscar el registro en participants
-			String hql = "FROM Participant WHERE user.id = :userId AND meeting.id = :meetingId";
+			String hql = DBQueries.PARTICIPANT_BY_MEETING_AND_ID;
 			Query<Participant> q = session.createQuery(hql, Participant.class);
 			q.setParameter("userId", userId);
 			q.setParameter("meetingId", meetingId);
@@ -118,7 +120,9 @@ public class MeetingsManager {
 			}
 			logger.error(e.getMessage());
 		} finally {
-			session.close();
+			if (session != null) {
+				session.close();
+			}
 		}
 		
 		return isUpdated;
@@ -134,7 +138,7 @@ public class MeetingsManager {
 			transaction = session.beginTransaction();
 			
 			// Buscar el registro en meetings
-			String hql = "FROM Meeting WHERE user.id = :userId AND id = :meetingId";
+			String hql = DBQueries.MEETING_BY_ID_AND_USER;
 			Query<Meeting> q = session.createQuery(hql, Meeting.class);
 			q.setParameter("userId", userId);
 			q.setParameter("meetingId", meetingId);
@@ -156,19 +160,20 @@ public class MeetingsManager {
 			}
 			logger.error(e.getMessage());
 		} finally {
-			session.close();
+			if (session != null) {
+				session.close();
+			}
 		}
 		
 		return isUpdated;
 	}
 	
 	public Meeting createMeeting(Meeting meeting) {
-
-		// Abrir una nueva sesión de Hibernate
-		Session session = sesion.openSession();
+		Session session = null;
 		Transaction transaction = null;
 
 		try {
+			session = sesion.openSession();
 			transaction = session.beginTransaction();
 
 			// Guardar la reunión en la base de datos
@@ -185,9 +190,11 @@ public class MeetingsManager {
 			if (transaction != null) {
 				transaction.rollback();
 			}
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		} finally {
-			session.close();
+			if (session != null) {
+				session.close();
+			}
 		}
 		
 		return meeting;

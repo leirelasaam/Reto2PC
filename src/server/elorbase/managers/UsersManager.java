@@ -24,7 +24,7 @@ public class UsersManager {
 	public User getByEmailOrPin(String login) {
 		User u = null;
 		Session session = null;
-		
+
 		try {
 			session = sesion.openSession();
 			String hql = DBQueries.USER_BY_EMAIL_OR_PIN;
@@ -38,22 +38,33 @@ public class UsersManager {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {
-			session.close();
+			if (session != null) {
+				session.close();
+			}
 		}
 
 		return u;
 	}
 
-
 	public List<User> getUsersByRole(long idRole) {
+		Session session = null;
+		List<User> users = null;
 
-		Session session = sesion.openSession();
-		String hql = DBQueries.U_BY_ROLE;
-		Query<User> q = session.createQuery(hql, User.class);
-		q.setParameter("roleId", idRole);
-		List<User> users = q.getResultList();
+		try {
+			session = sesion.openSession();
 
-		session.close();
+			String hql = DBQueries.USER_BY_ROLE;
+			Query<User> q = session.createQuery(hql, User.class);
+			q.setParameter("roleId", idRole);
+			users = q.getResultList();
+
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			if (session != null) {
+				session.close();
+			}
+		}
 		return users;
 	}
 
@@ -66,11 +77,10 @@ public class UsersManager {
 			transaction = session.beginTransaction();
 
 			String hashedPass = BcryptUtil.getHashedPass(password);
-			
+
 			if (user != null) {
 				user.setPassword(hashedPass);
 				session.merge(user);
-				session.getTransaction().commit();
 				logger.info("Contraseña restablecida correctamente para el usuario: " + user.getEmail());
 			}
 
@@ -81,14 +91,16 @@ public class UsersManager {
 			}
 			logger.error(e.getMessage());
 		} finally {
-			session.close();
+			if (session != null) {
+				session.close();
+			}
 		}
 	}
-	
+
 	public User getUserById(int id) {
-		User u = new User();
+		User u = null;
 		Session session = null;
-		
+
 		try {
 			session = sesion.openSession();
 			String hql = DBQueries.USER_BY_ID;
@@ -101,39 +113,43 @@ public class UsersManager {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {
-			session.close();
+			if (session != null) {
+				session.close();
+			}
 		}
 
 		return u;
 	}
 
-	//Comprobar que las funciones funcionan correctamente
 	public boolean updateUser(User updatedUser) {
-	    Session session = sesion.openSession();
-	    session.beginTransaction();
+		boolean isUpdated = false;
+		Session session = null;
+		Transaction transaction = null;
 
-	    try {
-	        if (updatedUser != null) {
-	            // Actualiza el usuario en la base de datos usando `merge`
-	            session.merge(updatedUser);
-	            session.getTransaction().commit();
-	            System.out.println("Usuario actualizado correctamente: " + updatedUser.getEmail());
-	            return true;
-	        } else {
-	            System.out.println("El usuario proporcionado es nulo. No se puede actualizar.");
-	            return false;
-	        }
-	    } catch (Exception e) {
-	        // En caso de error, realiza un rollback
-	        session.getTransaction().rollback();
-	        System.err.println("Error actualizando usuario: " + e.getMessage());
-	        e.printStackTrace();
-	        return false;
-	    } finally {
-	        // Cierra la sesión para liberar recursos
-	        session.close();
-	    }
+		try {
+			session = sesion.openSession();
+			transaction = session.beginTransaction();
+
+			if (updatedUser != null) {
+				session.merge(updatedUser);
+				transaction.commit();
+				logger.info("Usuario actualizado correctamente: " + updatedUser.getEmail());
+				isUpdated = true;
+			} else {
+				logger.info("El usuario proporcionado es nulo. No se puede actualizar.");
+			}
+		} catch (Exception e) {
+			if (transaction != null) {
+				transaction.rollback();
+			}
+			logger.error(e.getMessage());
+		} finally {
+			if (session != null) {
+				session.close();
+			}
+		}
+
+		return isUpdated;
 	}
-
 
 }

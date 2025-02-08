@@ -41,7 +41,9 @@ public class CoursesManager {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {
-			session.close();
+			if (session != null) {
+				session.close();
+			}
 		}
 
 		return courses;

@@ -2,10 +2,7 @@ package server.elorbase.entities;
 // Generated 27 ene 2025, 20:21:03 by Hibernate Tools 6.5.1.Final
 
 import java.sql.Timestamp;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
