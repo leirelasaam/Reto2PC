@@ -222,12 +222,15 @@ public class SocketIOModule {
 					           + "em {font-size: 12px; color: #3cb4e5}"
 					           + "</style></head>"
 					           + "<body>"
-					           + "<h1>¡Hola!</h1>"
+					           + "<h1>Solicitud de Cambio de Contraseña</h1>"
+					           + "<p>Hola,</p>"
 					           + "<p>Has solicitado una nueva contraseña para tu cuenta en <strong>ElorClass</strong>.</p>"
 					           + "<p>Tu nueva contraseña es: <strong>" + password + "</strong></p>"
 					           + "<p>Por favor, no compartas esta contraseña con nadie y cámbiala en cuanto puedas.</p>"
-					           + "<p>¡Gracias por usar ElorClass!</p>"
-					           + "<br><p><em>Este es un mensaje automático, por favor no respondas.</em></p>"
+					           + "<hr>"
+					           + "<p>Atentamente,</p>"
+					           + "<p>El equipo técnico de CIFP Elorrieta Erreka Mari LHII</p>"
+					           + "<p><em>Este es un mensaje automático, por favor no respondas.</em></p>"
 					           + "</body>"
 					           + "</html>";
 
